@@ -13,12 +13,12 @@ const icons = {
 
 const utilities = {
   id: 'utilities',
-  title: 'Utilities',
+  title: 'Management',
   type: 'group',
   children: [
     {
       id: 'util-typography',
-      title: 'Typography',
+      title: 'Mục 1',
       type: 'item',
       url: '/utils/util-typography',
       icon: icons.IconTypography,
@@ -26,7 +26,7 @@ const utilities = {
     },
     {
       id: 'util-color',
-      title: 'Color',
+      title: 'Mục 2',
       type: 'item',
       url: '/utils/util-color',
       icon: icons.IconPalette,
@@ -34,7 +34,7 @@ const utilities = {
     },
     {
       id: 'util-shadow',
-      title: 'Shadow',
+      title: 'Mục 3',
       type: 'item',
       url: '/utils/util-shadow',
       icon: icons.IconShadow,
@@ -42,24 +42,24 @@ const utilities = {
     },
     {
       id: 'icons',
-      title: 'Icons',
+      title: 'Mục 4',
       type: 'collapse',
       icon: icons.IconWindmill,
       children: [
         {
           id: 'tabler-icons',
-          title: 'Tabler Icons',
+          title: 'Mục nhỏ 1',
           type: 'item',
           url: '/icons/tabler-icons',
           breadcrumbs: false
         },
         {
           id: 'material-icons',
-          title: 'Material Icons',
+          title: 'Mục nhỏ 2',
           type: 'item',
           external: true,
           target: '_blank',
-          url: 'https://mui.com/material-ui/material-icons/',
+          // url: 'https://mui.com/material-ui/material-icons/',
           breadcrumbs: false
         }
       ]
