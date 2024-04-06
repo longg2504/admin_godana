@@ -1,10 +1,10 @@
 // assets
-import { IconTypography, IconPalette, IconShadow, IconWindmill } from '@tabler/icons-react';
+import { IconTypography, IconMapPins , IconShadow, IconWindmill } from '@tabler/icons-react';
 
 // constant
 const icons = {
   IconTypography,
-  IconPalette,
+  IconMapPins  ,
   IconShadow,
   IconWindmill
 };
@@ -25,11 +25,11 @@ const utilities = {
       breadcrumbs: false
     },
     {
-      id: 'util-color',
-      title: 'Mục 2',
+      id: 'util-place',
+      title: 'Place',
       type: 'item',
-      url: '/utils/util-color',
-      icon: icons.IconPalette,
+      url: '/utils/util-place',
+      icon: icons.IconMapPins,
       breadcrumbs: false
     },
     {
