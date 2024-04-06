@@ -18,37 +18,66 @@ const utilities = {
   children: [
     {
       id: 'util-typography',
-      title: 'Mục 1',
-      type: 'item',
-      url: '/utils/util-typography',
+      title: 'Contact',
+      type: 'collapse',
       icon: icons.IconTypography,
-      breadcrumbs: false
+      children: [
+        {
+          id: 'tabler-icons',
+          title: 'Contact List',
+          type: 'item',
+          url: '/icons/tabler-icons',
+          breadcrumbs: false
+        }
+      ]
     },
     {
       id: 'util-place',
       title: 'Place',
-      type: 'item',
-      url: '/utils/util-place',
+      type: 'collapse',
       icon: icons.IconMapPins,
-      breadcrumbs: false
+      children: [
+        {
+          id: 'tabler-icons',
+          title: 'Create Place',
+          type: 'item',
+          url: '/icons/tabler-icons',
+          breadcrumbs: false
+        },
+        {
+          id: 'tabler-icons',
+          title: 'Place List',
+          type: 'item',
+          url: '/utils/util-place',
+          breadcrumbs: false
+        }
+      ]
     },
     {
       id: 'util-shadow',
-      title: 'Mục 3',
-      type: 'item',
+      title: 'Post',
+      type: 'collapse',
       url: '/utils/util-shadow',
       icon: icons.IconShadow,
-      breadcrumbs: false
+      children: [
+        {
+          id: 'tabler-icons',
+          title: 'Post List',
+          type: 'item',
+          url: '/icons/tabler-icons',
+          breadcrumbs: false
+        },
+      ]
     },
     {
       id: 'icons',
-      title: 'Mục 4',
+      title: 'User',
       type: 'collapse',
       icon: icons.IconWindmill,
       children: [
         {
           id: 'tabler-icons',
-          title: 'Mục nhỏ 1',
+          title: 'User List',
           type: 'item',
           url: '/icons/tabler-icons',
           breadcrumbs: false

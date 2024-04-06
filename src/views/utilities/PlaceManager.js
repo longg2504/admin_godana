@@ -4,12 +4,13 @@ import { useTheme } from '@mui/material/styles';
 // material-ui
 import {
   Box,
-  Button, Divider, FormControl, Grid,
+  Divider, FormControl, Grid,
   InputLabel,
   MenuItem,
   OutlinedInput,
   Select,
-  Stack
+  Stack,
+  Avatar
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 
@@ -60,6 +61,8 @@ export function MultipleSelect({ label }) {
     );
   };
 
+  
+
   return (
     <div>
       <FormControl sx={{ m: 1, width: 150 }}>
@@ -89,18 +92,45 @@ export function MultipleSelect({ label }) {
 }
 
 // ===============================|| DATAGRID ||=============================== //
+
+
+function ImageField({ value }) {
+  return (
+    <Avatar src={value} alt="text" sx={{ display: 'flex', alignItems: 'center' }} style={{ width: 50, height: 50, marginRight: 5 }}/>
+  )
+}
+
 const columns = [
   { field: 'id', headerName: 'ID', width: 70 },
   {
+    field: 'image',
+    headerName: 'Image',
+    renderCell: ImageField,
+    width: 100,
+    editable: true,
+  },
+  {
     field: 'title',
     headerName: 'Title',
-    width: 200,
+    width: 100,
     editable: true,
   },
   {
     field: 'address',
     headerName: 'Address',
     width: 300,
+    editable: true,
+  },
+  {
+    field: 'longitude',
+    headerName: 'Longitude',
+    width: 100,
+    editable: true,
+  },
+  {
+    field: 'latitude',
+    headerName: 'Latitude',
+    width: 100,
     editable: true,
   },
   {
@@ -111,17 +141,34 @@ const columns = [
     type: 'select',
   },
   {
-    field: 'contact',
-    headerName: 'Contact',
+    field: 'email',
+    headerName: 'Email',
     sortable: false,
     width: 150,
   },
   {
-    field: 'rate',
-    headerName: 'Rate',
-    type: 'number',
+    field: 'phone',
+    headerName: 'Phone',
     sortable: false,
-    width: 160,
+    width: 150,
+  },
+  {
+    field: 'website',
+    headerName: 'Webite',
+    sortable: false,
+    width: 150,
+  },
+  {
+    field: 'opentime',
+    headerName: 'Open Time',
+    sortable: false,
+    width: 150,
+  },
+  {
+    field: 'closetime',
+    headerName: 'Close Time',
+    sortable: false,
+    width: 150,
   },
 ];
 
@@ -150,10 +197,18 @@ export function DataGridDemo() {
   // Map places to rows here
   const rows = places.map((place) => ({
     id: place.id,
+    image:place.placeAvatar[0].fileUrl,
     title: place.placeTitle,
     address: getAddress(place.locationRegion),
+    longitude: place.longitude,
+    latitude: place.latitude,
     category: place.category.title, 
-    contact: place.contact.phone, 
+    email: place.contact.email,
+    phone:place.contact.phone,
+    website:place.contact.website,
+    opentime:place.contact.openTime,
+    closetime:place.contact.closeTime,
+
   }));
 
   return (
@@ -181,18 +236,17 @@ const PlaceManager = () => {
 
   // ===============================|| FORM DIALOG ||=============================== //
 
-  const [openFormDialog, setOpenFormDialog] = useState(false);
-  const [editData, setEditData] = useState(null);
+  // const [openFormDialog, setOpenFormDialog] = useState(false);
+  // const [editData, setEditData] = useState(null);
 
-  const handleOpenFormDialog = (data = null) => {
-    setEditData(data);
-    setOpenFormDialog(true);
-  };
-
-  const handleSaveFormData = (formData) => {
-    console.log(formData);
-    setOpenFormDialog(false);
-  };
+  // const handleOpenFormDialog = (data = null) => {
+  //   setEditData(data);
+  //   setOpenFormDialog(true);
+  // };
+  // const handleSaveFormData = (formData) => {
+  //   console.log(formData);
+  //   setOpenFormDialog(false);
+  // };
 
   const formFields = [
     { name: 'title', label: 'Title', type: 'text' },
@@ -227,35 +281,29 @@ const PlaceManager = () => {
                 <Grid item xs={3}>
                   <MultipleSelect label="Rate" />
                 </Grid>
-                <Grid item xs={3}>
-                  <MultipleSelect label="" />
-                </Grid>
-                <Grid item xs={3}>
-                  <MultipleSelect label="" />
-                </Grid>
               </Grid>
             </Stack>
           </SubCard>
         </Grid>
-        <Grid item xs={2} sm={2} md={2}>
+        {/* <Grid item xs={2} sm={2} md={2}>
           <SubCard>
             <Stack direction="column" spacing={1}>
               <Button variant="contained" onClick={() => handleOpenFormDialog()}>Add</Button>
-              <Button variant="contained">Button</Button>
+              <Button variant="contained">Button ssss</Button>
               <Button variant="contained">Button</Button>
             </Stack>
           </SubCard>
-        </Grid>
+        </Grid> */}
       </Grid>
       <Divider component="li" />
       <SubCard>
         <DataGridDemo />
       </SubCard>
       <FormDialog
-        open={openFormDialog}
-        onClose={() => setOpenFormDialog(false)}
-        onSave={handleSaveFormData}
-        editData={editData}
+        // open={openFormDialog}
+        // onClose={() => setOpenFormDialog(false)}
+        // onSave={handleSaveFormData}
+        // editData={editData}
         fields={formFields}
       />
     </MainCard>
