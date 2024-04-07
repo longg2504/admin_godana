@@ -1,17 +1,17 @@
-// material-ui
-import { Grid } from '@mui/material';
+import { Grid} from '@mui/material';
+
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 
-// =============================|| TABLER ICONS ||============================= //
+// ==============================|| CONTACT ||============================== //
 
-const TablerIcons = () => (
+const ContactList = () => (
   <MainCard title="TIÊU ĐỀ">
     <Grid container spacing={gridSpacing}>
-      Nội dung
+      CONTACT LIST
     </Grid>
   </MainCard>
 );
 
-export default TablerIcons;
+export default ContactList;

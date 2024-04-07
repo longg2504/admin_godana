@@ -8,11 +8,11 @@ import Loadable from 'ui-component/Loadable';
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
 
 // utilities routing
-const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
+const ContactList = Loadable(lazy(() => import('views/utilities/ContactList')));
 const PlaceManager = Loadable(lazy(() => import('views/utilities/PlaceManager')));
-const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
-const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
-const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
+const PlaceCreate = Loadable(lazy(() => import('views/utilities/PlaceCreate')));
+const PostList = Loadable(lazy(() => import('views/utilities/PostList')));
+const UserList = Loadable(lazy(() => import('views/utilities/UserList')));
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
@@ -20,11 +20,11 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
-  path: '/',
+  path: 'admin',
   element: <MainLayout />,
   children: [
     {
-      path: '/',
+      path: 'dashboard',
       element: <DashboardDefault />
     },
     {
@@ -37,47 +37,42 @@ const MainRoutes = {
       ]
     },
     {
-      path: 'utils',
+      path: 'contact',
       children: [
         {
-          path: 'util-typography',
-          element: <UtilsTypography />
+          path: 'contact-list',
+          element: <ContactList />
         }
       ]
     },
     {
-      path: 'utils',
+      path: 'place',
       children: [
         {
-          path: 'util-place',
+          path: 'place-list',
           element: <PlaceManager />
+        },
+        {
+          path: 'place-create',
+          element: <PlaceCreate />
         }
       ]
     },
     {
-      path: 'utils',
+      path: 'user',
       children: [
         {
-          path: 'util-shadow',
-          element: <UtilsShadow />
+          path: 'user-list',
+          element: <UserList />
         }
       ]
     },
     {
-      path: 'icons',
+      path: 'post',
       children: [
         {
-          path: 'tabler-icons',
-          element: <UtilsTablerIcons />
-        }
-      ]
-    },
-    {
-      path: 'icons',
-      children: [
-        {
-          path: 'material-icons',
-          element: <UtilsMaterialIcons />
+          path: 'post-list',
+          element: <PostList />
         }
       ]
     },

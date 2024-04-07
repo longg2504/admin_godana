@@ -4,14 +4,14 @@ import { Grid} from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 
-// ==============================|| TYPOGRAPHY ||============================== //
+// ==============================|| CONTACT ||============================== //
 
-const Typography = () => (
+const PostList = () => (
   <MainCard title="TIÊU ĐỀ">
     <Grid container spacing={gridSpacing}>
-      Nội dung
+      Post List
     </Grid>
   </MainCard>
 );
 
-export default Typography;
+export default PostList;

@@ -17,78 +17,76 @@ const utilities = {
   type: 'group',
   children: [
     {
-      id: 'util-typography',
+      id: 'contact',
       title: 'Contact',
       type: 'collapse',
       icon: icons.IconTypography,
       children: [
         {
-          id: 'tabler-icons',
+          id: 'contact-list',
           title: 'Contact List',
           type: 'item',
-          url: '/icons/tabler-icons',
+          url: '/admin/contact/contact-list',
           breadcrumbs: false
         }
       ]
     },
     {
-      id: 'util-place',
+      id: 'place',
       title: 'Place',
       type: 'collapse',
+      url: '/admin/place/place-list',
       icon: icons.IconMapPins,
       children: [
         {
-          id: 'tabler-icons',
-          title: 'Create Place',
+          id: 'place-list',
+          title: 'Place List',
           type: 'item',
-          url: '/icons/tabler-icons',
+          url: '/admin/place/place-list',
           breadcrumbs: false
         },
         {
-          id: 'tabler-icons',
-          title: 'Place List',
+          id: 'create-place',
+          title: 'Create Place',
           type: 'item',
-          url: '/utils/util-place',
+          url: '/admin/place/create-place',
           breadcrumbs: false
         }
       ]
     },
     {
-      id: 'util-shadow',
+      id: 'post',
       title: 'Post',
       type: 'collapse',
-      url: '/utils/util-shadow',
       icon: icons.IconShadow,
       children: [
         {
-          id: 'tabler-icons',
+          id: 'post-list',
           title: 'Post List',
           type: 'item',
-          url: '/icons/tabler-icons',
+          url: '/admin/post/post-list',
           breadcrumbs: false
         },
       ]
     },
     {
-      id: 'icons',
+      id: 'user',
       title: 'User',
       type: 'collapse',
       icon: icons.IconWindmill,
       children: [
         {
-          id: 'tabler-icons',
+          id: 'user-list',
           title: 'User List',
           type: 'item',
-          url: '/icons/tabler-icons',
+          url: '/admin/user/user-list',
           breadcrumbs: false
         },
         {
-          id: 'material-icons',
-          title: 'Mục nhỏ 2',
+          id: 'user-ban',
+          title: 'User Ban',
           type: 'item',
-          external: true,
-          target: '_blank',
-          // url: 'https://mui.com/material-ui/material-icons/',
+          url: '/admin/user/user-ban',
           breadcrumbs: false
         }
       ]
