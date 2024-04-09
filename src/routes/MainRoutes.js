@@ -20,7 +20,7 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
-  path: 'admin',
+  path: '/',
   element: <MainLayout />,
   children: [
     {
@@ -53,7 +53,7 @@ const MainRoutes = {
           element: <PlaceManager />
         },
         {
-          path: 'place-create',
+          path: 'create-place',
           element: <PlaceCreate />
         }
       ]

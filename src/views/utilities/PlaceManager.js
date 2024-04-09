@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useTheme } from '@mui/material/styles';
-
 // material-ui
 import {
   Box,
@@ -8,8 +6,9 @@ import {
   InputLabel,
   MenuItem,
   OutlinedInput,
+  TextField,
+  Button,
   Select,
-  Stack,
   Avatar
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -19,74 +18,81 @@ import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 import SubCard from 'ui-component/cards/SubCard';
 import SearchSection from 'layout/MainLayout/Header/SearchSection';
-import FormDialog from 'ui-component/FormDialog';
 import { fetchPlaces } from 'constant/constURL/URLPlace';
+import { fetchCategory, createCategory } from 'constant/constURL/URLCategory';
 
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
 
-function getStyles(name, personName, theme) {
-  return {
-    fontWeight:
-      personName.indexOf(name) === -1
-        ? theme.typography.fontWeightRegular
-        : theme.typography.fontWeightMedium,
-  };
-}
-
-const names = [
-  'Oliver Hansen',
-  'Van Henry',
-  'April Tucker',
-];
-
-export function MultipleSelect({ label }) {
-  const theme = useTheme();
-  const [personName, setPersonName] = React.useState([]);
+function SingleSelect({ label, options, onChange }) {
+  const [selectedOption, setSelectedOption] = useState('');
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [newCategoryTitle, setNewCategoryTitle] = useState('');
 
   const handleChange = (event) => {
-    const {
-      target: { value },
-    } = event;
-    setPersonName(
-      typeof value === 'string' ? value.split(',') : value,
-    );
+    const { value } = event.target;
+
+    if (value === "add_new") {
+      setIsAddingNew(true);
+      setSelectedOption('');
+    } else {
+      setIsAddingNew(false);
+      setSelectedOption(value);
+      if (onChange) {
+        onChange(value);
+      }
+    }
   };
 
+  const handleCreateCategory = async () => {
+    if (newCategoryTitle.trim() === '') return;
+    
+    try {
+      const response = await createCategory({ title: newCategoryTitle });
+      console.log('Category created:', response.data);
+      setIsAddingNew(false); // Hide form after successful addition
+      setNewCategoryTitle(''); // Reset input field
+      // Add the new category to the options state here
+      setCategories([...categories, response.data]);
+    } catch (error) {
+      console.error('Error creating category:', error);
+    }
+  };
   
 
   return (
     <div>
-      <FormControl sx={{ m: 1, width: 150 }}>
-        <InputLabel id={`${label}-multiple-name-label`}>{label}</InputLabel>
+      <FormControl fullWidth margin="normal">
+        <InputLabel id={`${label}-label`}>{label}</InputLabel>
         <Select
-          labelId={`${label}-multiple-name-label`}
-          id={`${label}-multiple-name`}
-          multiple
-          value={personName}
+          labelId={`${label}-label`}
+          id={`${label}`}
+          value={selectedOption}
           onChange={handleChange}
           input={<OutlinedInput label={label} />}
-          MenuProps={MenuProps}
         >
-          {names.map((name) => (
+          {options.map((option) => (
             <MenuItem
-              key={name}
-              value={name}
-              style={getStyles(name, personName, theme)}
+              key={option.id}
+              value={option.id}
             >
-              {name}
+              {option.title}
             </MenuItem>
           ))}
+          <MenuItem value="add_new">Add New Category</MenuItem>
         </Select>
       </FormControl>
+      {isAddingNew && (
+        <div style={{ marginTop: '10px' }}>
+          <TextField
+            fullWidth
+            label="New Category Title"
+            margin="normal"
+            value={newCategoryTitle}
+            onChange={(e) => setNewCategoryTitle(e.target.value)}
+            variant="outlined"
+          />
+          <Button variant="contained" onClick={handleCreateCategory}>Create Category</Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -96,7 +102,7 @@ export function MultipleSelect({ label }) {
 
 function ImageField({ value }) {
   return (
-    <Avatar src={value} alt="text" sx={{ display: 'flex', alignItems: 'center' }} style={{ width: 50, height: 50, marginRight: 5 }}/>
+    <Avatar src={value} alt="text" sx={{ display: 'flex', alignItems: 'center' }} style={{ width: 50, height: 50, marginRight: 5 }} />
   )
 }
 
@@ -107,37 +113,37 @@ const columns = [
     headerName: 'Image',
     renderCell: ImageField,
     width: 100,
-    editable: true,
+    editable: false,
   },
   {
     field: 'title',
     headerName: 'Title',
     width: 100,
-    editable: true,
+    editable: false,
   },
   {
     field: 'address',
     headerName: 'Address',
     width: 300,
-    editable: true,
+    editable: false,
   },
   {
     field: 'longitude',
     headerName: 'Longitude',
     width: 100,
-    editable: true,
+    editable: false,
   },
   {
     field: 'latitude',
     headerName: 'Latitude',
     width: 100,
-    editable: true,
+    editable: false,
   },
   {
     field: 'category',
     headerName: 'Category',
     width: 150,
-    editable: true,
+    editable: false,
     type: 'select',
   },
   {
@@ -197,17 +203,17 @@ export function DataGridDemo() {
   // Map places to rows here
   const rows = places.map((place) => ({
     id: place.id,
-    image:place.placeAvatar[0].fileUrl,
+    image: place.placeAvatar?.[0]?.fileUrl || 'defaultImageUrl',
     title: place.placeTitle,
     address: getAddress(place.locationRegion),
     longitude: place.longitude,
     latitude: place.latitude,
-    category: place.category.title, 
+    category: place.category.title,
     email: place.contact.email,
-    phone:place.contact.phone,
-    website:place.contact.website,
-    opentime:place.contact.openTime,
-    closetime:place.contact.closeTime,
+    phone: place.contact.phone,
+    website: place.contact.website,
+    opentime: place.contact.openTime,
+    closetime: place.contact.closeTime,
 
   }));
 
@@ -233,79 +239,39 @@ export function DataGridDemo() {
 
 // ===============================|| UI PLACE MANAGER ||=============================== //
 const PlaceManager = () => {
+  // ==============================|| CATEGORY API ||============================== //
+  const [categories, setCategories] = useState([]);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetchCategory();
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
 
-  // ===============================|| FORM DIALOG ||=============================== //
-
-  // const [openFormDialog, setOpenFormDialog] = useState(false);
-  // const [editData, setEditData] = useState(null);
-
-  // const handleOpenFormDialog = (data = null) => {
-  //   setEditData(data);
-  //   setOpenFormDialog(true);
-  // };
-  // const handleSaveFormData = (formData) => {
-  //   console.log(formData);
-  //   setOpenFormDialog(false);
-  // };
-
-  const formFields = [
-    { name: 'title', label: 'Title', type: 'text' },
-    { name: 'address', label: 'Address', type: 'text' },
-    { name: 'category', label: 'Category', type: 'select', options: ['Category 1', 'Category 2', 'Category 3'] },
-    // { name: 'rate', label: 'Rate', type: 'number' },
-    { name: 'description', label: 'Description', type: 'textarea' },
-    { name: 'contact', label: 'Contact', type: 'tel' },
-  ];
+    fetchCategories();
+  }, []);
 
   return (
     <MainCard title="PLACE MANAGEMENT">
       <Grid container spacing={gridSpacing}>
-        <Grid item xs={12} sm={10}>
+        <Grid item xs={12}>
           <SubCard>
-            <Stack>
-              {/* Make SearchSection full width */}
-              <Grid container spacing={1} mt={0.5}>
-                <SearchSection style={{ width: '100%' }} />
-              </Grid>
-              {/* Place MultipleSelects next to each other */}
-              <Grid container spacing={1} xs={7} columns={{}} >
-                <Grid item xs={3}>
-                  <MultipleSelect label="Title" />
-                </Grid>
-                <Grid item xs={3}>
-                  <MultipleSelect label="Address" />
-                </Grid>
-                <Grid item xs={3}>
-                  <MultipleSelect label="Category" />
-                </Grid>
-                <Grid item xs={3}>
-                  <MultipleSelect label="Rate" />
-                </Grid>
-              </Grid>
-            </Stack>
+            <Grid item xs={12} md={6}>
+              <SearchSection style={{ width: '100%' }} />
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <SingleSelect label="Category" options={categories} />
+            </Grid>
           </SubCard>
         </Grid>
-        {/* <Grid item xs={2} sm={2} md={2}>
-          <SubCard>
-            <Stack direction="column" spacing={1}>
-              <Button variant="contained" onClick={() => handleOpenFormDialog()}>Add</Button>
-              <Button variant="contained">Button ssss</Button>
-              <Button variant="contained">Button</Button>
-            </Stack>
-          </SubCard>
-        </Grid> */}
       </Grid>
-      <Divider component="li" />
+      <Divider component="" />
       <SubCard>
         <DataGridDemo />
       </SubCard>
-      <FormDialog
-        // open={openFormDialog}
-        // onClose={() => setOpenFormDialog(false)}
-        // onSave={handleSaveFormData}
-        // editData={editData}
-        fields={formFields}
-      />
     </MainCard>
   );
 };

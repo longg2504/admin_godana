@@ -114,6 +114,11 @@ const SearchSection = () => {
   const theme = useTheme();
   const [value, setValue] = useState('');
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      onSearch(value);
+    }
+  };
   return (
     <>
       <Box sx={{ display: { xs: 'block', md: 'none' } }}>
@@ -161,6 +166,7 @@ const SearchSection = () => {
           id="input-search-header"
           value={value}
           onChange={(e) => setValue(e.target.value)}
+          onKeyPress={handleKeyPress}
           placeholder="Search"
           startAdornment={
             <InputAdornment position="start">

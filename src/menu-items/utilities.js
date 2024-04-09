@@ -26,7 +26,7 @@ const utilities = {
           id: 'contact-list',
           title: 'Contact List',
           type: 'item',
-          url: '/admin/contact/contact-list',
+          url: '/contact/contact-list',
           breadcrumbs: false
         }
       ]
@@ -35,21 +35,21 @@ const utilities = {
       id: 'place',
       title: 'Place',
       type: 'collapse',
-      url: '/admin/place/place-list',
+      url: '/place/place-list',
       icon: icons.IconMapPins,
       children: [
         {
           id: 'place-list',
           title: 'Place List',
           type: 'item',
-          url: '/admin/place/place-list',
+          url: '/place/place-list',
           breadcrumbs: false
         },
         {
           id: 'create-place',
           title: 'Create Place',
           type: 'item',
-          url: '/admin/place/create-place',
+          url: '/place/create-place',
           breadcrumbs: false
         }
       ]
@@ -64,7 +64,7 @@ const utilities = {
           id: 'post-list',
           title: 'Post List',
           type: 'item',
-          url: '/admin/post/post-list',
+          url: '/post/post-list',
           breadcrumbs: false
         },
       ]
@@ -79,14 +79,14 @@ const utilities = {
           id: 'user-list',
           title: 'User List',
           type: 'item',
-          url: '/admin/user/user-list',
+          url: '/user/user-list',
           breadcrumbs: false
         },
         {
           id: 'user-ban',
           title: 'User Ban',
           type: 'item',
-          url: '/admin/user/user-ban',
+          url: '/user/user-ban',
           breadcrumbs: false
         }
       ]
