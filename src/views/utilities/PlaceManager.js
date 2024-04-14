@@ -18,45 +18,41 @@ import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 import SubCard from 'ui-component/cards/SubCard';
 import SearchSection from 'layout/MainLayout/Header/SearchSection';
-import { fetchPlaces } from 'constant/constURL/URLPlace';
+import { fetchPlaces, fetchPlaceById } from 'constant/constURL/URLPlace';
 import { fetchCategory, createCategory } from 'constant/constURL/URLCategory';
+import FormPlaceDialog from 'ui-component/place/FormPlaceDialog';
 
 
-function SingleSelect({ label, options, onChange }) {
+function SingleSelect({ label, options, onChange, setCategories }) {
   const [selectedOption, setSelectedOption] = useState('');
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newCategoryTitle, setNewCategoryTitle] = useState('');
 
   const handleChange = (event) => {
-    const { value } = event.target;
-
-    if (value === "add_new") {
-      setIsAddingNew(true);
-      setSelectedOption('');
-    } else {
+    setSelectedOption(event.target.value);
+    if (event.target.value !== "add_new") {
       setIsAddingNew(false);
-      setSelectedOption(value);
-      if (onChange) {
-        onChange(value);
-      }
+      onChange(event.target.value);
+    } else {
+      setIsAddingNew(true);
     }
   };
 
   const handleCreateCategory = async () => {
     if (newCategoryTitle.trim() === '') return;
-    
+
     try {
       const response = await createCategory({ title: newCategoryTitle });
-      console.log('Category created:', response.data);
-      setIsAddingNew(false); // Hide form after successful addition
-      setNewCategoryTitle(''); // Reset input field
-      // Add the new category to the options state here
-      setCategories([...categories, response.data]);
+      setIsAddingNew(false);
+      setNewCategoryTitle('');
+      // Cập nhật danh sách categories ở cấp độ ứng dụng
+      setCategories(prevCategories => [...prevCategories, response.data]);
+      // Tự động chọn category mới được tạo
+      onChange(response.data.id);
     } catch (error) {
       console.error('Error creating category:', error);
     }
   };
-  
 
   return (
     <div>
@@ -70,10 +66,7 @@ function SingleSelect({ label, options, onChange }) {
           input={<OutlinedInput label={label} />}
         >
           {options.map((option) => (
-            <MenuItem
-              key={option.id}
-              value={option.id}
-            >
+            <MenuItem key={option.id} value={option.id}>
               {option.title}
             </MenuItem>
           ))}
@@ -96,6 +89,7 @@ function SingleSelect({ label, options, onChange }) {
     </div>
   );
 }
+
 
 // ===============================|| DATAGRID ||=============================== //
 
@@ -179,7 +173,7 @@ const columns = [
 ];
 
 
-export function DataGridDemo() {
+export function DataGridDemo({ onRowClick }) {
   const [places, setPlaces] = useState([]);
 
   useEffect(() => {
@@ -232,6 +226,7 @@ export function DataGridDemo() {
         pageSizeOptions={[10]}
         checkboxSelection
         disableRowSelectionOnClick
+        onRowClick={onRowClick}
       />
     </Box>
   );
@@ -239,8 +234,14 @@ export function DataGridDemo() {
 
 // ===============================|| UI PLACE MANAGER ||=============================== //
 const PlaceManager = () => {
-  // ==============================|| CATEGORY API ||============================== //
+
+  const [editData, setEditData] = useState(null);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({});
   const [categories, setCategories] = useState([]);
+
+  // ==============================|| CATEGORY API ||============================== //
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -254,6 +255,55 @@ const PlaceManager = () => {
     fetchCategories();
   }, []);
 
+
+
+  // ===============================|| DATAGRID ||=============================== //
+
+  const handleRowClick = async (params) => {
+    try {
+      const response = await fetchPlaceById(params.row.id);
+      console.log(params.row.id);
+      setEditData({
+        // ...response.data,
+        placeTitle: response.data.placeTitle,
+        content: response.data.content,
+        longitude: response.data.longitude,
+        latitude: response.data.latitude,
+        placeAvatar: response.data.placeAvatar,
+        website: response.data.contact.website,
+        email: response.data.contact.email,
+        phone: response.data.contact.phone,
+        address: response.data.locationRegion.address,
+        categoryId: response.data.category.title,
+        openTime: response.data.contact.openTime,
+        closeTime: response.data.contact.closeTime,
+        district: response.data.locationRegion.district_id,
+        ward: response.data.locationRegion.ward_id,
+      });
+
+      console.log('placeTitle:', response.data.placeTitle);
+      console.log('content:', response.data.content);
+      console.log('longitude:', response.data.longitude);
+      console.log('latitude:', response.data.latitude);
+      console.log('placeAvatar:', response.data.placeAvatar);
+      console.log('website:', response.data.contact.website);
+      console.log('email:', response.data.contact.email);
+      console.log('phone:', response.data.contact.phone);
+      console.log('address:', response.data.locationRegion.address);
+      console.log('category:', response.data.category.title);
+      console.log('openTime:', response.data.contact.openTime);
+      console.log('closeTime:', response.data.contact.closeTime);
+      console.log('district:', response.data.locationRegion.district_name);
+      console.log('ward:', response.data.locationRegion.ward_name);
+
+      setIsFormDialogOpen(true);
+    } catch (error) {
+      console.log(params.row.id);
+      console.error('Failed to fetch place details:', error);
+    }
+  };
+
+
   return (
     <MainCard title="PLACE MANAGEMENT">
       <Grid container spacing={gridSpacing}>
@@ -263,14 +313,22 @@ const PlaceManager = () => {
               <SearchSection style={{ width: '100%' }} />
             </Grid>
             <Grid item xs={12} md={2}>
-              <SingleSelect label="Category" options={categories} />
+              <SingleSelect
+                label="Category"
+                options={categories.map(cat => ({ id: cat.id, title: cat.name }))}
+                onChange={(selectedId) => setFormData({ ...formData, category: selectedId })}
+                setCategories={setCategories}
+              />
             </Grid>
           </SubCard>
         </Grid>
       </Grid>
       <Divider component="" />
       <SubCard>
-        <DataGridDemo />
+        <DataGridDemo onRowClick={handleRowClick} />
+
+        <FormPlaceDialog editData={editData} open={isFormDialogOpen} />
+
       </SubCard>
     </MainCard>
   );

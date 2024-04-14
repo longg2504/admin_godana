@@ -20,8 +20,9 @@ import SubCard from 'ui-component/cards/SubCard';
 import FormDialog from 'ui-component/FormDialog'
 
 // ==============================|| SINGLE SELECT ||============================== //
-function SingleSelect({ label, options, onChange, name, error }) {
+function SingleSelect({ label, options, onChange, name, error, onSave, open }) {
   const [selectedOption, setSelectedOption] = useState('');
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleChange = (event) => {
@@ -30,28 +31,18 @@ function SingleSelect({ label, options, onChange, name, error }) {
     if (value === 'add_new') {
       // Open the dialog
       setIsDialogOpen(true);
-    } else if (onChange) {
+    } else {
+      // Notify parent component about the change
       onChange(name, value);
     }
   };
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
+    // Optionally reset the selected option or handle other cleanup
   };
 
-  const handleSaveNewCategory = async (newCategoryData) => {
-    try {
-      const response = await createCategory(newCategoryData);
-      console.log('New category created:', response.data);
-      setIsDialogOpen(false);
-      // Inform the parent component to update the options list
-      if (onChange) {
-        onChange(name, response.data.id, true); // The third parameter `true` could indicate a new category was added
-      }
-    } catch (error) {
-      console.error('Error creating category:', error);
-    }
-  };
+
 
   return (
     <FormControl fullWidth margin="normal" error={!!error}>
@@ -66,19 +57,20 @@ function SingleSelect({ label, options, onChange, name, error }) {
         {options.map((option) => (
           <MenuItem key={option.id} value={option.id}>{option.title}</MenuItem>
         ))}
-        <MenuItem value="add_new">Add Category</MenuItem>
+        <MenuItem value="add_new">Add New {label}</MenuItem>
       </Select>
       {!!error && <FormHelperText>{error}</FormHelperText>}
 
       <FormDialog
-        open={isDialogOpen}
+        open={open || isDialogOpen}
         onClose={handleDialogClose}
-        onSave={handleSaveNewCategory}
+        onSave={onSave}
         fields={[{ name: 'title', label: 'Category Title', type: 'text' }]}
       />
     </FormControl>
   );
 }
+
 
 
 
@@ -590,7 +582,26 @@ const PlaceCreate = () => {
     // Optional: validate the new time values here
   };
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleSaveNewCategory = async (newCategoryData) => {
+    try {
+      const response = await createCategory(newCategoryData);
+      console.log('New category created:', response.data);
+      setIsDialogOpen(false);
+      onChange(name, response.data.id);
+      setSnackbarMessage('Category successfully created!');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error('Error creating category:', error);
+      setSnackbarMessage('Failed to create category. Please try again.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    }
+  };
   return (
+
     <MainCard title="Create New Place">
       <form autoComplete="off" noValidate onSubmit={handleSubmit}>
         <Grid container spacing={gridSpacing}>
@@ -643,7 +654,13 @@ const PlaceCreate = () => {
               error={!!formErrors.latitude} // Chuyển trạng thái lỗi sang boolean
               helperText={formErrors.latitude}
             />
-            <SingleSelect label="Category" options={categories} onChange={(name, value) => handleSelectionChange(name, value)} name="categoryId" error={formErrors.categoryId} />
+            <SingleSelect label="Category"
+              open={isDialogOpen}
+              options={categories}
+              onChange={(name, value) => handleSelectionChange(name, value)}
+              name="categoryId"
+              error={formErrors.categoryId}
+              onSave={handleSaveNewCategory} />
             <TextField
               fullWidth
               label="Website"
