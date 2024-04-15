@@ -68,6 +68,7 @@ function SingleSelect({ label, options, onChange }) {
           value={selectedOption}
           onChange={handleChange}
           input={<OutlinedInput label={label} />}
+          
         >
           {options.map((option) => (
             <MenuItem
@@ -77,7 +78,7 @@ function SingleSelect({ label, options, onChange }) {
               {option.title}
             </MenuItem>
           ))}
-          <MenuItem value="add_new">Add New Category</MenuItem>
+          {/* <MenuItem value="add_new">Add New Category</MenuItem> */}
         </Select>
       </FormControl>
       {isAddingNew && (
