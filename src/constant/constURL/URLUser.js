@@ -1,7 +1,7 @@
 
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'http://localhost:9000/api' });
+const API = axios.create({ baseURL: 'http://localhost:9000/api/user' });
 
 export const fetchPlaces = (params) => API.get('/place', { params });
 export const fetchPlaceById = (id) => API.get(`/place/${id}`);

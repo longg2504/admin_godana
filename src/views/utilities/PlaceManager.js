@@ -263,44 +263,61 @@ const PlaceManager = () => {
     try {
       const response = await fetchPlaceById(params.row.id);
       console.log(params.row.id);
+
+      // Check if response.data and response.data.placeAvatar are defined and have the right structure
+      // if (!response.data || !Array.isArray(response.data.placeAvatar[0].fileUrl) || response.data.placeAvatar.length === 0) {
+      //   throw new Error('placeAvatar is not an array or is empty');
+      // }
+
       setEditData({
         // ...response.data,
         placeTitle: response.data.placeTitle,
         content: response.data.content,
         longitude: response.data.longitude,
         latitude: response.data.latitude,
-        placeAvatar: response.data.placeAvatar,
+        placeAvatar: response.data.place.placeAvatar[0].fileUrl,
         website: response.data.contact.website,
         email: response.data.contact.email,
         phone: response.data.contact.phone,
         address: response.data.locationRegion.address,
-        categoryId: response.data.category.title,
+        categoryId: response.data.category.id,  // Lưu ID thay vì title để dễ xử lý
+        categoryName: response.data.category.title,
         openTime: response.data.contact.openTime,
         closeTime: response.data.contact.closeTime,
-        district: response.data.locationRegion.district_id,
-        ward: response.data.locationRegion.ward_id,
+        districtId: response.data.locationRegion.districtId,
+        districtName: response.data.locationRegion.districtName,
+        wardId: response.data.locationRegion.wardId,
+        wardName: response.data.locationRegion.wardName,
       });
 
       console.log('placeTitle:', response.data.placeTitle);
       console.log('content:', response.data.content);
       console.log('longitude:', response.data.longitude);
       console.log('latitude:', response.data.latitude);
-      console.log('placeAvatar:', response.data.placeAvatar);
+      console.log('placeAvatar:', response.data.place.placeAvatar[0].fileUrl);
       console.log('website:', response.data.contact.website);
       console.log('email:', response.data.contact.email);
       console.log('phone:', response.data.contact.phone);
       console.log('address:', response.data.locationRegion.address);
-      console.log('category:', response.data.category.title);
+      console.log('categoryId:', response.data.category.id);
+      console.log('categoryName:', response.data.category.title);
       console.log('openTime:', response.data.contact.openTime);
       console.log('closeTime:', response.data.contact.closeTime);
-      console.log('district:', response.data.locationRegion.district_name);
-      console.log('ward:', response.data.locationRegion.ward_name);
+      console.log('districtId:', response.data.locationRegion.districtId);
+      console.log('districtName:', response.data.locationRegion.districtName);
+      console.log('wardId:', response.data.locationRegion.wardId);
+      console.log('wardId:', response.data.locationRegion.wardName);
 
       setIsFormDialogOpen(true);
     } catch (error) {
       console.log(params.row.id);
       console.error('Failed to fetch place details:', error);
     }
+  };
+
+  const handleFormDialogClose = () => {
+    setIsFormDialogOpen(!isFormDialogOpen);
+    console.log("Form status: " + isFormDialogOpen);
   };
 
 
@@ -327,7 +344,7 @@ const PlaceManager = () => {
       <SubCard>
         <DataGridDemo onRowClick={handleRowClick} />
 
-        <FormPlaceDialog editData={editData} open={isFormDialogOpen} />
+        <FormPlaceDialog editData={editData} open={isFormDialogOpen} onClose={handleFormDialogClose} />
 
       </SubCard>
     </MainCard>
