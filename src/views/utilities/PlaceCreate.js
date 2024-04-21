@@ -371,15 +371,6 @@ const PlaceCreate = () => {
       case 'content':
         if (!value.trim()) return "Content is required";
         break;
-<<<<<<< HEAD
-      case 'longitude':
-        if (!value.trim()) return "Longitude is required";
-        else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid longitude format";
-        break;
-      case 'latitude':
-        if (!value.trim()) return "Latitude is required";
-        else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid latitude format"; break;
-=======
       case 'latitude':
         if (!value.trim()) return "Latitude is required";
         else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid latitude format";
@@ -387,7 +378,6 @@ const PlaceCreate = () => {
       case 'longitude':
         if (!value.trim()) return "Longitude is required";
         else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid longitude format"; break;
->>>>>>> origin/dev-quoc
       case 'address':
         if (!value.trim()) return "Address is required";
         break;
@@ -397,11 +387,7 @@ const PlaceCreate = () => {
         break;
       case 'phone':
         if (!value.trim()) return "Phone is required";
-<<<<<<< HEAD
         else if (!/^\d{1,11}$/.test(value)) return "Phone must be up to 11 digits";
-=======
-        else if (!/^\d{1,11}$/.test(value)) return "Phone must be up to 10 digits";
->>>>>>> origin/dev-quoc
         break;
       case 'website':
         if (!value.trim()) return "Website is required";
