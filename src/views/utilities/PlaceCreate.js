@@ -6,9 +6,11 @@ import React, {
 
 import {
   Grid, TextField, Button, ImageList, ImageListItem,
-  InputLabel, MenuItem, Select, FormControl,
-  OutlinedInput, Snackbar, Alert, Box, FormHelperText
+  InputLabel, MenuItem, Select, FormControl, IconButton, ImageListItemBar,
+  OutlinedInput, Snackbar, Alert, Box, FormHelperText, Dialog, DialogTitle, DialogContent
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+// import VisibilityIcon from '@mui/icons-material/Visibility';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -133,19 +135,32 @@ function ProvinceSelect() {
 // ==============================|| UPLOAD IMAGE ||============================== //
 const UploadImage = ({ onChange }) => {
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState('');
 
   const handleFileChange = (event) => {
     if (event.target.files) {
-      const filesArray = Array.from(event.target.files).map((file) =>
-        URL.createObjectURL(file)
-      );
-
-      setImagePreviews(filesArray);
+      const filesArray = Array.from(event.target.files).map(file => ({
+        file,
+        url: URL.createObjectURL(file)
+      }));
+      setImagePreviews(prev => [...prev, ...filesArray]);
       onChange(event);
-
-      // Free memory when component unmounts
-      return () => filesArray.forEach(file => URL.revokeObjectURL(file));
     }
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleDeleteImage = (index) => {
+    const filteredImages = imagePreviews.filter((_, idx) => idx !== index);
+    setImagePreviews(filteredImages);
+  };
+
+  const handleOpenImage = (url) => {
+    setSelectedImage(url);
+    setOpen(true);
   };
 
   return (
@@ -166,18 +181,38 @@ const UploadImage = ({ onChange }) => {
       <ImageList cols={3} gap={8}>
         {imagePreviews.map((item, index) => (
           <ImageListItem key={index}>
-            <img
-              src={item}
-              alt={`preview ${index}`}
-              loading="lazy"
-              style={{ width: '100%', height: '100%' }}
+            <Button
+              onClick={() => handleOpenImage(item.url)}
+              style={{ padding: 0, width: '100%', height: '100%' }}
+              component="span"
+            >
+              <img
+                src={item.url}
+                alt={`preview ${index}`}
+                loading="lazy"
+                style={{ width: '100%', height: '100%' }}
+              />
+            </Button>
+            <ImageListItemBar
+              actionIcon={
+                <IconButton onClick={() => handleDeleteImage(index)}>
+                  <CloseIcon color="error" />
+                </IconButton>
+              }
             />
           </ImageListItem>
         ))}
       </ImageList>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>{"Preview"}</DialogTitle>
+        <DialogContent>
+          <img src={selectedImage} alt="Enlarged preview" style={{ width: '100%' }} />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
+
 
 // ==============================|| TIME SELECT ||============================== //
 
@@ -191,70 +226,81 @@ const createTimeOptions = (start, end, step) => {
   return options;
 };
 
-const TimeSelect = ({ onTimeChange }) => {
+const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '' }) => {
   const [timeSetting, setTimeSetting] = useState('');
   const [openHour, setOpenHour] = useState('');
   const [openMinute, setOpenMinute] = useState('');
   const [closeHour, setCloseHour] = useState('');
   const [closeMinute, setCloseMinute] = useState('');
 
+  useEffect(() => {
+    // Check if the initial times are for all day
+    if (initialOpenTime === '00:00' && initialCloseTime === '23:59') {
+      setTimeSetting('all_day');
+    } else if (initialOpenTime && initialCloseTime) {
+      setTimeSetting('specific_time');
+      const [openH, openM] = initialOpenTime.split(':');
+      const [closeH, closeM] = initialCloseTime.split(':');
+      setOpenHour(openH);
+      setOpenMinute(openM);
+      setCloseHour(closeH);
+      setCloseMinute(closeM);
+    }
+  }, [initialOpenTime, initialCloseTime]);
+
   const handleTimeSettingChange = (event) => {
     const setting = event.target.value;
     setTimeSetting(setting);
 
     if (setting === 'all_day') {
+      setOpenHour('00');
+      setOpenMinute('00');
+      setCloseHour('23');
+      setCloseMinute('59');
       onTimeChange('openTime', '00:00');
       onTimeChange('closeTime', '23:59');
     } else {
-      // If the user switches back to specific time, reset to the initial state
       setOpenHour('');
       setOpenMinute('');
       setCloseHour('');
       setCloseMinute('');
+      onTimeChange('openTime', '');
+      onTimeChange('closeTime', '');
     }
   };
 
   const handleOpenHourChange = (event) => {
     const newHour = event.target.value;
     setOpenHour(newHour);
-    // Automatically adjust close time if it's before the new open time
-    if (newHour > closeHour || (newHour === closeHour && (openMinute >= closeMinute || closeMinute === ''))) {
-      setCloseHour(newHour);
-      setCloseMinute('');
-    }
+    onTimeChange('openTime', `${newHour}:${openMinute}`);
   };
 
   const handleOpenMinuteChange = (event) => {
     const newMinute = event.target.value;
     setOpenMinute(newMinute);
-    // Adjust close time minutes if the hours are the same and new minutes are later than close minutes
-    if (openHour === closeHour && newMinute >= closeMinute) {
-      setCloseMinute('');
-    }
+    onTimeChange('openTime', `${openHour}:${newMinute}`);
   };
 
-  const handleTimeChange = (field, value) => {
-    if (field === 'openTime') {
-      const [hour, minute] = value.split(':');
-      setOpenHour(hour);
-      setOpenMinute(minute);
-      if (parseInt(hour) > parseInt(closeHour) || (hour === closeHour && parseInt(minute) > parseInt(closeMinute))) {
-        setCloseHour(hour);
-        setCloseMinute(minute);
-      }
-    } else if (field === 'closeTime') {
-      setCloseHour(value.split(':')[0]);
-      setCloseMinute(value.split(':')[1]);
-    }
+  const handleCloseHourChange = (event) => {
+    const newHour = event.target.value;
+    setCloseHour(newHour);
+    onTimeChange('closeTime', `${newHour}:${closeMinute}`);
   };
 
-  const   closingHoursOptions = openHour ? createTimeOptions(parseInt(openHour), 23, 1) : createTimeOptions(0, 23, 1);
 
-  // For closing minutes, only filter them if the closing hour is the same as the opening hour
-  const closingMinutesOptions = createTimeOptions(0, 59, 5).filter(minute => {
-    const minuteValue = parseInt(minute.props.value);
-    return openHour !== closeHour || minuteValue > parseInt(openMinute);
-  });
+  const handleCloseMinuteChange = (event) => {
+    const newMinute = event.target.value;
+    setCloseMinute(newMinute);
+    onTimeChange('closeTime', `${closeHour}:${newMinute}`);
+  };
+
+  // const closingHoursOptions = openHour ? createTimeOptions(parseInt(openHour), 23, 1) : createTimeOptions(0, 23, 1);
+
+  // // For closing minutes, only filter them if the closing hour is the same as the opening hour
+  // const closingMinutesOptions = createTimeOptions(0, 59, 5).filter(minute => {
+  //     const minuteValue = parseInt(minute.props.value);
+  //     return openHour !== closeHour || minuteValue > parseInt(openMinute);
+  // });
 
   return (
     <FormControl fullWidth style={{ marginTop: '16px' }}>
@@ -283,30 +329,26 @@ const TimeSelect = ({ onTimeChange }) => {
             <FormControl fullWidth>
               <InputLabel>Phút mở cửa</InputLabel>
               <Select value={openMinute} onChange={handleOpenMinuteChange}>
-                {createTimeOptions(0, 59, 5)}
+                {createTimeOptions(0, 59, 1)}
               </Select>
             </FormControl>
           </Grid>
-          {openHour && (
-            <>
-              <Grid item xs={6}>
-                <FormControl fullWidth style={{ marginTop: '7px' }}>
-                  <InputLabel>Giờ đóng cửa</InputLabel>
-                  <Select value={closeHour} onChange={(e) => handleTimeChange('closeTime', e.target.value + ':' + closeMinute)}>
-                    {closingHoursOptions}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={6}>
-                <FormControl fullWidth style={{ marginTop: '7px' }}>
-                  <InputLabel>Phút đóng cửa</InputLabel>
-                  <Select value={closeMinute} onChange={(e) => handleTimeChange('closeTime', closeHour + ':' + e.target.value)}>
-                    {closingMinutesOptions}
-                  </Select>
-                </FormControl>
-              </Grid>
-            </>
-          )}
+          <Grid item xs={6}>
+            <FormControl fullWidth>
+              <InputLabel>Giờ đóng cửa</InputLabel>
+              <Select value={closeHour} onChange={handleCloseHourChange}>
+                {createTimeOptions(parseInt(openHour), 23, 1)}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={6}>
+            <FormControl fullWidth>
+              <InputLabel>Phút đóng cửa</InputLabel>
+              <Select value={closeMinute} onChange={handleCloseMinuteChange}>
+                {createTimeOptions(0, 59, 1)}
+              </Select>
+            </FormControl>
+          </Grid>
         </Grid>
       )}
     </FormControl>
@@ -329,6 +371,7 @@ const PlaceCreate = () => {
       case 'content':
         if (!value.trim()) return "Content is required";
         break;
+<<<<<<< HEAD
       case 'longitude':
         if (!value.trim()) return "Longitude is required";
         else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid longitude format";
@@ -336,6 +379,15 @@ const PlaceCreate = () => {
       case 'latitude':
         if (!value.trim()) return "Latitude is required";
         else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid latitude format"; break;
+=======
+      case 'latitude':
+        if (!value.trim()) return "Latitude is required";
+        else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid latitude format";
+        break;
+      case 'longitude':
+        if (!value.trim()) return "Longitude is required";
+        else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid longitude format"; break;
+>>>>>>> origin/dev-quoc
       case 'address':
         if (!value.trim()) return "Address is required";
         break;
@@ -345,7 +397,11 @@ const PlaceCreate = () => {
         break;
       case 'phone':
         if (!value.trim()) return "Phone is required";
+<<<<<<< HEAD
         else if (!/^\d{1,11}$/.test(value)) return "Phone must be up to 11 digits";
+=======
+        else if (!/^\d{1,11}$/.test(value)) return "Phone must be up to 10 digits";
+>>>>>>> origin/dev-quoc
         break;
       case 'website':
         if (!value.trim()) return "Website is required";
@@ -480,14 +536,22 @@ const PlaceCreate = () => {
   };
 
 
+  // const handleFileChange = (event) => {
+  //   if (event.target.files.length) {
+  //     const files = Array.from(event.target.files);
+  //     setFormData(formData => ({
+  //       ...formData,
+  //       placeAvatar: [...formData.placeAvatar, ...files]
+  //     }));
+  //   }
+  // };
+
   const handleFileChange = (event) => {
-    if (event.target.files.length) {
-      const files = Array.from(event.target.files);
-      setFormData(formData => ({
-        ...formData,
-        placeAvatar: [...formData.placeAvatar, ...files]
-      }));
-    }
+    const files = Array.from(event.target.files);
+    setFormData(formData => ({
+      ...formData,
+      placeAvatar: [...formData.placeAvatar, ...files]
+    }));
   };
 
 

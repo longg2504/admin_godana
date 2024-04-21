@@ -4,85 +4,86 @@ import {
     TextField, Button, DialogActions,
     Grid, FormControl, InputLabel, Select,
     OutlinedInput, FormHelperText, MenuItem,
-    Box, ImageList, ImageListItem, Snackbar, Alert
+    Box, ImageList, ImageListItem, Snackbar, Alert,
+    ImageListItemBar, IconButton
 }
     from '@mui/material';
+
+import CloseIcon from '@mui/icons-material/Close';
 import SubCard from 'ui-component/cards/SubCard';
 import FormDialog from 'ui-component/FormDialog'
+import { fetchUpdatePlaceById } from 'constant/constURL/URLPlace';
 import { fetchCategory, createCategory } from 'constant/constURL/URLCategory';
 import { fetchDistrict, fetchWard } from 'constant/constURL/URLLocationRegion';
 
 const createTimeOptions = (start, end, step) => {
     const options = [];
     for (let i = start; i <= end; i += step) {
-        options.push(<MenuItem key={i} value={i < 10 ? `0${i}` : `${i}`}>{i < 10 ? `0${i}` : i}</MenuItem>);
+        options.push(<MenuItem key={i} value={`${i < 10 ? `0${i}` : i}`}>{`${i < 10 ? `0${i}` : i}`}</MenuItem>);
     }
     return options;
 };
 
-const TimeSelect = ({ onTimeChange }) => {
+const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '' }) => {
     const [timeSetting, setTimeSetting] = useState('');
     const [openHour, setOpenHour] = useState('');
     const [openMinute, setOpenMinute] = useState('');
     const [closeHour, setCloseHour] = useState('');
     const [closeMinute, setCloseMinute] = useState('');
 
-    const handleTimeSettingChange = (event) => {
-        const setting = event.target.value;
-        setTimeSetting(setting);
-
-        if (setting === 'all_day') {
-            onTimeChange('openTime', '00:00');
-            onTimeChange('closeTime', '23:59');
-        } else {
-            // If the user switches back to specific time, reset to the initial state
-            setOpenHour('');
-            setOpenMinute('');
-            setCloseHour('');
-            setCloseMinute('');
+    useEffect(() => {
+        if (initialOpenTime === '00:00' && initialCloseTime === '23:59') {
+            setTimeSetting('all_day');
+        } else if (initialOpenTime && initialCloseTime) {
+            setTimeSetting('specific_time');
+            const [openH, openM] = initialOpenTime.split(':');
+            const [closeH, closeM] = initialCloseTime.split(':');
+            setOpenHour(openH);
+            setOpenMinute(openM);
+            setCloseHour(closeH);
+            setCloseMinute(closeM);
         }
-    };
-
-    const handleOpenHourChange = (event) => {
-        const newHour = event.target.value;
-        setOpenHour(newHour);
-        // Automatically adjust close time if it's before the new open time
-        if (newHour > closeHour || (newHour === closeHour && (openMinute >= closeMinute || closeMinute === ''))) {
-            setCloseHour(newHour);
-            setCloseMinute('');
-        }
-    };
-
-    const handleOpenMinuteChange = (event) => {
-        const newMinute = event.target.value;
-        setOpenMinute(newMinute);
-        // Adjust close time minutes if the hours are the same and new minutes are later than close minutes
-        if (openHour === closeHour && newMinute >= closeMinute) {
-            setCloseMinute('');
-        }
-    };
+    }, [initialOpenTime, initialCloseTime]);
 
     const handleTimeChange = (field, value) => {
         if (field === 'openTime') {
             const [hour, minute] = value.split(':');
             setOpenHour(hour);
             setOpenMinute(minute);
-            if (parseInt(hour) > parseInt(closeHour) || (hour === closeHour && parseInt(minute) > parseInt(closeMinute))) {
+            if (parseInt(hour) > parseInt(closeHour) || (hour === closeHour && parseInt(minute) >= parseInt(closeMinute))) {
                 setCloseHour(hour);
                 setCloseMinute(minute);
             }
+            onTimeChange('openTime', `${hour}:${minute}`);
         } else if (field === 'closeTime') {
-            setCloseHour(value.split(':')[0]);
-            setCloseMinute(value.split(':')[1]);
+            const [hour, minute] = value.split(':');
+            setCloseHour(hour);
+            setCloseMinute(minute);
+            onTimeChange('closeTime', `${hour}:${minute}`);
         }
     };
 
-    const closingHoursOptions = openHour ? createTimeOptions(parseInt(openHour), 23, 1) : createTimeOptions(0, 23, 1);
+    const handleTimeSettingChange = (event) => {
+        const setting = event.target.value;
+        setTimeSetting(setting);
 
-    // For closing minutes, only filter them if the closing hour is the same as the opening hour
-    const closingMinutesOptions = createTimeOptions(0, 59, 5).filter(minute => {
+        if (setting === 'all_day') {
+            handleTimeChange('openTime', '00:00');
+            handleTimeChange('closeTime', '23:59');
+        } else {
+            setOpenHour('');
+            setOpenMinute('');
+            setCloseHour('');
+            setCloseMinute('');
+            onTimeChange('openTime', '');
+            onTimeChange('closeTime', '');
+        }
+    };
+
+    // Only filter closing minutes if the closing hour is the same as the opening hour
+    const closingMinutesOptions = createTimeOptions(0, 59, 1).filter(minute => {
         const minuteValue = parseInt(minute.props.value);
-        return openHour !== closeHour || minuteValue > parseInt(openMinute);
+        return openHour !== closeHour || minuteValue >= parseInt(openMinute);
     });
 
     return (
@@ -103,7 +104,7 @@ const TimeSelect = ({ onTimeChange }) => {
                     <Grid item xs={6}>
                         <FormControl fullWidth>
                             <InputLabel>Giờ mở cửa</InputLabel>
-                            <Select value={openHour} onChange={handleOpenHourChange}>
+                            <Select value={openHour} onChange={(e) => handleTimeChange('openTime', `${e.target.value}:${openMinute}`)}>
                                 {createTimeOptions(0, 23, 1)}
                             </Select>
                         </FormControl>
@@ -111,56 +112,101 @@ const TimeSelect = ({ onTimeChange }) => {
                     <Grid item xs={6}>
                         <FormControl fullWidth>
                             <InputLabel>Phút mở cửa</InputLabel>
-                            <Select value={openMinute} onChange={handleOpenMinuteChange}>
-                                {createTimeOptions(0, 59, 5)}
+                            <Select value={openMinute} onChange={(e) => handleTimeChange('openTime', `${openHour}:${e.target.value}`)}>
+                                {createTimeOptions(0, 59, 1)}
                             </Select>
                         </FormControl>
                     </Grid>
-                    {openHour && (
-                        <>
-                            <Grid item xs={6}>
-                                <FormControl fullWidth style={{ marginTop: '7px' }}>
-                                    <InputLabel>Giờ đóng cửa</InputLabel>
-                                    <Select value={closeHour} onChange={(e) => handleTimeChange('closeTime', e.target.value + ':' + closeMinute)}>
-                                        {closingHoursOptions}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={6}>
-                                <FormControl fullWidth style={{ marginTop: '7px' }}>
-                                    <InputLabel>Phút đóng cửa</InputLabel>
-                                    <Select value={closeMinute} onChange={(e) => handleTimeChange('closeTime', closeHour + ':' + e.target.value)}>
-                                        {closingMinutesOptions}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                        </>
-                    )}
+                    <Grid item xs={6}>
+                        <FormControl fullWidth>
+                            <InputLabel>Giờ đóng cửa</InputLabel>
+                            <Select value={closeHour} onChange={(e) => handleTimeChange('closeTime', `${e.target.value}:${closeMinute}`)}>
+                                {createTimeOptions(parseInt(openHour), 23, 1)}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <FormControl fullWidth>
+                            <InputLabel>Phút đóng cửa</InputLabel>
+                            <Select value={closeMinute} onChange={(e) => handleTimeChange('closeTime', `${closeHour}:${e.target.value}`)}>
+                                {closingMinutesOptions}
+                            </Select>
+                        </FormControl>
+                    </Grid>
                 </Grid>
             )}
         </FormControl>
     );
 };
 
-
 // ==============================|| UPLOAD IMAGE ||============================== //
 
 // Component to upload images
 const UploadImage = ({ onChange }) => {
     const [imagePreviews, setImagePreviews] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [selectedImage, setSelectedImage] = useState('');
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: ''
+    });
+
+    // Function to open the snackbar
+    const openSnackbar = (message) => {
+        setSnackbar({ open: true, message });
+    };
+
+    // Function to close the snackbar
+    const handleSnackbarClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackbar({ ...snackbar, open: false });
+    };
 
     const handleFileChange = (event) => {
         if (event.target.files) {
-            const filesArray = Array.from(event.target.files).map(file => URL.createObjectURL(file));
-            setImagePreviews(filesArray);
-            onChange(event);
-            return () => filesArray.forEach(file => URL.revokeObjectURL(file));
+            const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            const filesArray = Array.from(event.target.files).filter(file =>
+                validImageTypes.includes(file.type)
+            ).map(file => ({
+                file,
+                url: URL.createObjectURL(file)
+            }));
+
+            if (filesArray.length !== event.target.files.length) {
+                openSnackbar('Some files were ignored because they are not valid images.');
+            }
+
+            setImagePreviews(prev => [...prev, ...filesArray]);
+            onChange(filesArray);
         }
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const handleDeleteImage = (index) => {
+        const filteredImages = imagePreviews.filter((_, idx) => idx !== index);
+        setImagePreviews(filteredImages);
+    };
+
+    const handleOpenImage = (url) => {
+        setSelectedImage(url);
+        setOpen(true);
     };
 
     return (
         <Box>
-            <input accept="image/*" type="file" multiple onChange={handleFileChange} style={{ display: 'none' }} id="raised-button-file" />
+            <input
+                accept="image/jpeg, image/png, image/gif"
+                type="file"
+                multiple
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+                id="raised-button-file"
+            />
             <label htmlFor="raised-button-file">
                 <Button variant="contained" component="span">
                     Upload Images
@@ -169,10 +215,39 @@ const UploadImage = ({ onChange }) => {
             <ImageList cols={3} gap={8}>
                 {imagePreviews.map((item, index) => (
                     <ImageListItem key={index}>
-                        <img src={item} alt={`preview ${index}`} loading="lazy" style={{ width: '100%', height: '100%' }} />
+                        <Button
+                            onClick={() => handleOpenImage(item.url)}
+                            style={{ padding: 0, width: '100%', height: '100%' }}
+                            component="span"
+                        >
+                            <img
+                                src={item.url}
+                                alt={`preview ${index}`}
+                                loading="lazy"
+                                style={{ width: '100%', height: '100%' }}
+                            />
+                        </Button>
+                        <ImageListItemBar
+                            actionIcon={
+                                <IconButton onClick={() => handleDeleteImage(index)}>
+                                    <CloseIcon color="error" />
+                                </IconButton>
+                            }
+                        />
                     </ImageListItem>
                 ))}
             </ImageList>
+            <Dialog open={open} onClose={handleClose}>
+                <DialogTitle>{"Preview"}</DialogTitle>
+                <DialogContent>
+                    <img src={selectedImage} alt="Enlarged preview" style={{ width: '100%' }} />
+                </DialogContent>
+            </Dialog>
+            <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
+                <Alert onClose={handleSnackbarClose} severity="warning" sx={{ width: '100%' }}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };
@@ -182,9 +257,13 @@ const UploadImage = ({ onChange }) => {
 
 // ==============================|| LOCATION REGION SELECT ||============================== //
 
-function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, error }) {
-    // const theme = useTheme();
-    const [selectedOption, setSelectedOption] = useState('');
+function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, error, selectedOption }) {
+    const [currentSelection, setCurrentSelection] = useState('');
+    useEffect(() => {
+        if (selectedOption) {
+            setCurrentSelection(selectedOption);
+        }
+    }, [selectedOption]);
 
     const handleChange = (event) => {
         setSelectedOption(event.target.value);
@@ -199,7 +278,7 @@ function LocationRegionSelect({ label, options, onSelectionChange, name, disable
             <Select
                 labelId={`${label}-label`}
                 id={`${label}`}
-                value={selectedOption}
+                value={currentSelection}
                 onChange={handleChange}
                 input={<OutlinedInput label={label} />}
                 disabled={disabled}
@@ -240,20 +319,24 @@ function ProvinceSelect() {
 
 // ==============================|| LOCATION REGION SELECT ||============================== //
 // ==============================|| SINGLE SELECT ||============================== //
-function SingleSelect({open, label, options, onChange, name, error }) {
-    const [selectedOption, setSelectedOption] = useState('');
+function SingleSelect({ label, options, onChange, name, error, selectedOption }) {
+    useEffect(() => {
+        if (selectedOption) {
+            setCurrentSelection(selectedOption);
+        }
+    }, [selectedOption]);
 
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [currentSelection, setCurrentSelection] = useState('');
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState('success');
-
+    const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
     const handleSaveNewCategory = async (newCategoryData) => {
         try {
             const response = await createCategory(newCategoryData);
             console.log('New category created:', response.data);
-            setIsDialogOpen(false);
+            setCategoryDialogOpen(false);
             onChange(name, response.data.id);
             setSnackbarMessage('Category successfully created!');
             setSnackbarSeverity('success');
@@ -263,24 +346,24 @@ function SingleSelect({open, label, options, onChange, name, error }) {
             console.error('Error creating category:', error);
             setSnackbarMessage('Failed to create category. Please try again.');
             setSnackbarSeverity('error');
-            setIsDialogOpen(false);
+            setCategoryDialogOpen(false);
             console.log(isDialogOpen);
             setOpenSnackbar(true);
         }
     };
     const handleChange = (event) => {
         const value = event.target.value;
-        setSelectedOption(value);
+        setCurrentSelection(value);
         if (value === 'add_new') {
-            setIsDialogOpen(true);
+            setCategoryDialogOpen(true);
         } else {
             onChange(name, value);
         }
     };
 
-    const handleDialogClose = () => {
-        setIsDialogOpen(false);
-        console.log(isDialogOpen);
+    const handleCategoryDialogToggle = () => {
+        setCategoryDialogOpen(!categoryDialogOpen);
+        console.log("Category form: " + categoryDialogOpen);
     };
 
     const handleCloseSnackbar = (event, reason) => {
@@ -297,7 +380,7 @@ function SingleSelect({open, label, options, onChange, name, error }) {
             <Select
                 labelId={`${label}-label`}
                 id={`${label}`}
-                value={selectedOption}
+                value={currentSelection}
                 onChange={handleChange}
                 input={<OutlinedInput label={label} />}
             >
@@ -309,8 +392,8 @@ function SingleSelect({open, label, options, onChange, name, error }) {
             {!!error && <FormHelperText>{error}</FormHelperText>}
 
             <FormDialog
-                open={open || isDialogOpen}
-                onClose={handleDialogClose}
+                open={categoryDialogOpen}
+                onClose={handleCategoryDialogToggle}
                 onSave={handleSaveNewCategory}
                 fields={[{ name: 'title', label: 'Category Title', type: 'text' }]}
             />
@@ -333,14 +416,17 @@ function SingleSelect({open, label, options, onChange, name, error }) {
 
 
 // Main dialog component
-const FormPlaceDialog = ({ open, editData }) => {
+const FormPlaceDialog = ({ open, editData, onClose }) => {
+    console.log("Form status: " + open);
 
     const [formErrors, setFormErrors] = useState({});
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-
+    // const [isDialogOpen, setIsDialogOpen] = useState(open);
+    const [selectedCategoryId, setSelectedCategoryId] = useState('');
+    const [selectedDistrictId, setSelectedDistrictId] = useState('');
+    const [selectedWardId, setSelectedWardId] = useState('');
     // ==============================|| VALIDATION FIELD ||============================== //
 
     const validateField = (name, value) => {
@@ -402,6 +488,8 @@ const FormPlaceDialog = ({ open, editData }) => {
 
         fetchCategories();
     }, []);
+
+
     // ==============================|| TIMESELECT ||============================== //
     const handleTimeChange = (field, value) => {
         setFormData((prevFormData) => ({
@@ -439,7 +527,7 @@ const FormPlaceDialog = ({ open, editData }) => {
         let updatedValues = { [name]: value };
 
         // Tìm và cập nhật districtName nếu districtId được thay đổi
-        if (name === "districtId") {
+        if (name === "district") {
             const selectedDistrict = districts.find(district => district.id === value);
             if (selectedDistrict) {
                 updatedValues.districtName = selectedDistrict.title;
@@ -461,7 +549,7 @@ const FormPlaceDialog = ({ open, editData }) => {
         }
 
         // Tìm và cập nhật wardName nếu wardId được thay đổi
-        if (name === "wardId") {
+        if (name === "ward") {
             const selectedWard = wards.find(ward => ward.id === value);
             if (selectedWard) {
                 updatedValues.wardName = selectedWard.title;
@@ -477,12 +565,33 @@ const FormPlaceDialog = ({ open, editData }) => {
         const errorMessage = validateField(name, value);
         setFormErrors(prevErrors => ({ ...prevErrors, [name]: errorMessage }));
     };
+
+    useEffect(() => {
+        if (selectedDistrictId) {
+            fetchWard(selectedDistrictId).then(response => {
+                const wardsData = response.data.results.map(ward => ({
+                    id: ward.ward_id,
+                    title: ward.ward_name
+                }));
+                setWards(wardsData);
+            }).catch(error => console.error("Failed to fetch wards:", error));
+        } else {
+            setWards([]);  // Clear wards if no district is selected
+        }
+    }, [selectedDistrictId]);  // Dependency should be on selectedDistrictId to refetch when it changes
+
+
+
     useEffect(() => {
         if (editData) {
             setFormData({
                 ...formData, ...editData
             });
+            setSelectedCategoryId(editData.categoryId);
+            setSelectedDistrictId(editData.districtId);
+            setSelectedWardId(editData.wardId);
         }
+
     }, [editData]);
 
 
@@ -514,17 +623,83 @@ const FormPlaceDialog = ({ open, editData }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleDialogClose = () => {
-        setIsDialogOpen(false);
-        
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        severity: 'info',
+        message: ''
+    });
+
+    // Open the snackbar with a message and severity
+    const openSnackbar = (message, severity) => {
+        setSnackbar({ open: true, message, severity });
     };
-    const handleSubmit = (event) => {
+
+    // Close the snackbar
+    const handleSnackbarClose = () => {
+        setSnackbar({ ...snackbar, open: false });
+    };
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        onSave(formData);
+
+        // Validate all fields in formData
+        let hasError = false;
+        let newFormErrors = {};
+        for (const field in formData) {
+            const errorMessage = validateField(field, formData[field]);
+            if (errorMessage) {
+                newFormErrors[field] = errorMessage;
+                hasError = true;
+            }
+        }
+
+        // If there are validation errors, set them and stop the submission
+        if (hasError) {
+            setFormErrors(newFormErrors);
+            return;
+        }
+
+        // If no validation errors, proceed with form submission
+        const formDataToSend = new FormData();
+
+        console.log("Form Data To Send 1: " + formDataToSend);
+        // Append non-file fields to formDataToSend
+        Object.keys(formData).forEach(key => {
+            if (key !== 'placeAvatar') { // Exclude file fields for now
+                formDataToSend.append(key, formData[key]);
+            }
+        });
+
+        // Append file fields to formDataToSend, if they exist
+        if (formData.placeAvatar && formData.placeAvatar.length) {
+            formData.placeAvatar.forEach((file, index) => {
+                // Append each file under the name 'placeAvatar[]' to allow for array-like processing on the server side
+                formDataToSend.append(`placeAvatar[${index}]`, file.file);
+            });
+        }
+
+        // Check if any invalid files were attempted to be uploaded
+        if (invalidFiles.length > 0) {
+            openSnackbar('Some files were not valid images and have not been uploaded.', 'error');
+            return;
+        }
+
+        // API call to update the place
+        try {
+            const response = await fetchUpdatePlaceById(editData.id, formDataToSend);
+            console.log('Update successful:', response.data);
+
+            openSnackbar('Update successful!', 'success');
+            onClose();
+
+        } catch (error) {
+            console.error('Failed to update place:', error);
+            openSnackbar('Failed to update place. Please try again.', 'error');
+        }
     };
 
     return (
-        <Dialog open={open} maxWidth="md" fullWidth>
+        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
             <DialogTitle variant='h4'>Infomation Place</DialogTitle>
             <DialogContent>
                 <Grid container spacing={2}>
@@ -534,14 +709,16 @@ const FormPlaceDialog = ({ open, editData }) => {
                         <TextField label="Content" name="content" fullWidth onChange={handleChange} value={formData.content} margin="normal" multiline />
                         <TextField label="Longitude" name="longitude" fullWidth onChange={handleChange} value={formData.longitude} margin="normal" />
                         <TextField label="Latitude" name="latitude" fullWidth onChange={handleChange} value={formData.latitude} margin="normal" />
-                        <SingleSelect label="Category" name="category" options={categories} open={isDialogOpen} onChange={(name, value) => handleSelectionChange(name, value)}/>
+                        <SingleSelect label="Category" name="category" options={categories} onChange={(name, value) => handleSelectionChange(name, value)} selectedOption={selectedCategoryId} />
                     </Grid>
                     <Grid item xs={12} md={4}>
                         <TextField label="Website" name="website" fullWidth onChange={handleChange} value={formData.website} margin="normal" />
                         <TextField label="Email" name="email" fullWidth onChange={handleChange} value={formData.email} margin="normal" />
                         <TextField label="Phone" name="phone" fullWidth onChange={handleChange} value={formData.phone} margin="normal" />
                         <TextField label="Address" name="address" fullWidth onChange={handleChange} value={formData.address} margin="normal" />
-                        <TimeSelect label="Set Time" onTimeChange={handleTimeChange} />
+                        <TimeSelect label="Set Time" onTimeChange={handleTimeChange}
+                            initialOpenTime={formData.openTime}
+                            initialCloseTime={formData.closeTime} />
                     </Grid>
                     <Grid item xs={12} md={4}>
                         <ProvinceSelect />
@@ -550,14 +727,16 @@ const FormPlaceDialog = ({ open, editData }) => {
                             options={districts}
                             onSelectionChange={(name, value) => handleSelectionChange(name, value)}
                             disabled={false}
-                            name="districtId"
+                            name="district"
+                            selectedOption={selectedDistrictId}
                             error={formErrors.districtId}
                         />
                         <LocationRegionSelect label="Ward"
                             options={wards}
                             onSelectionChange={(name, value) => handleSelectionChange(name, value)}
-                            name="wardId"
-                            disabled={!formData.districtId} // Disable nếu district chưa được chọn
+                            name="ward"
+                            selectedOption={selectedWardId}
+                            disabled={!selectedDistrictId} // Disable nếu district chưa được chọn
                             error={formErrors.wardId} />
                         <SubCard>
                             <UploadImage onChange={handleFileChange} />
@@ -566,9 +745,14 @@ const FormPlaceDialog = ({ open, editData }) => {
                 </Grid>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleDialogClose}>Cancel</Button>
+                <Button onClick={onClose}>Cancel</Button>
                 <Button onClick={handleSubmit}>Update</Button>
             </DialogActions>
+            <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
+                <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Dialog>
     );
 };
