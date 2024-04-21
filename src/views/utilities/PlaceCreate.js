@@ -20,8 +20,9 @@ import SubCard from 'ui-component/cards/SubCard';
 import FormDialog from 'ui-component/FormDialog'
 
 // ==============================|| SINGLE SELECT ||============================== //
-function SingleSelect({ label, options, onChange, name, error }) {
+function SingleSelect({ label, options, onChange, name, error, onSave, open }) {
   const [selectedOption, setSelectedOption] = useState('');
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleChange = (event) => {
@@ -30,28 +31,18 @@ function SingleSelect({ label, options, onChange, name, error }) {
     if (value === 'add_new') {
       // Open the dialog
       setIsDialogOpen(true);
-    } else if (onChange) {
+    } else {
+      // Notify parent component about the change
       onChange(name, value);
     }
   };
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
+    // Optionally reset the selected option or handle other cleanup
   };
 
-  const handleSaveNewCategory = async (newCategoryData) => {
-    try {
-      const response = await createCategory(newCategoryData);
-      console.log('New category created:', response.data);
-      setIsDialogOpen(false);
-      // Inform the parent component to update the options list
-      if (onChange) {
-        onChange(name, response.data.id, true); // The third parameter `true` could indicate a new category was added
-      }
-    } catch (error) {
-      console.error('Error creating category:', error);
-    }
-  };
+
 
   return (
     <FormControl fullWidth margin="normal" error={!!error}>
@@ -66,19 +57,20 @@ function SingleSelect({ label, options, onChange, name, error }) {
         {options.map((option) => (
           <MenuItem key={option.id} value={option.id}>{option.title}</MenuItem>
         ))}
-        <MenuItem value="add_new">Add Category</MenuItem>
+        <MenuItem value="add_new">Add New {label}</MenuItem>
       </Select>
       {!!error && <FormHelperText>{error}</FormHelperText>}
 
       <FormDialog
-        open={isDialogOpen}
+        open={open || isDialogOpen}
         onClose={handleDialogClose}
-        onSave={handleSaveNewCategory}
+        onSave={onSave}
         fields={[{ name: 'title', label: 'Category Title', type: 'text' }]}
       />
     </FormControl>
   );
 }
+
 
 
 
@@ -256,7 +248,7 @@ const TimeSelect = ({ onTimeChange }) => {
     }
   };
 
-  const closingHoursOptions = openHour ? createTimeOptions(parseInt(openHour), 23, 1) : createTimeOptions(0, 23, 1);
+  const   closingHoursOptions = openHour ? createTimeOptions(parseInt(openHour), 23, 1) : createTimeOptions(0, 23, 1);
 
   // For closing minutes, only filter them if the closing hour is the same as the opening hour
   const closingMinutesOptions = createTimeOptions(0, 59, 5).filter(minute => {
@@ -339,11 +331,11 @@ const PlaceCreate = () => {
         break;
       case 'longitude':
         if (!value.trim()) return "Longitude is required";
-        else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid longitude format";
+        else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid longitude format";
         break;
       case 'latitude':
         if (!value.trim()) return "Latitude is required";
-        else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid latitude format"; break;
+        else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid latitude format"; break;
       case 'address':
         if (!value.trim()) return "Address is required";
         break;
@@ -353,7 +345,7 @@ const PlaceCreate = () => {
         break;
       case 'phone':
         if (!value.trim()) return "Phone is required";
-        else if (!/^\d{1,10}$/.test(value)) return "Phone must be up to 10 digits";
+        else if (!/^\d{1,11}$/.test(value)) return "Phone must be up to 11 digits";
         break;
       case 'website':
         if (!value.trim()) return "Website is required";
@@ -590,7 +582,26 @@ const PlaceCreate = () => {
     // Optional: validate the new time values here
   };
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleSaveNewCategory = async (newCategoryData) => {
+    try {
+      const response = await createCategory(newCategoryData);
+      console.log('New category created:', response.data);
+      setIsDialogOpen(false);
+      onChange(name, response.data.id);
+      setSnackbarMessage('Category successfully created!');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error('Error creating category:', error);
+      setSnackbarMessage('Failed to create category. Please try again.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    }
+  };
   return (
+
     <MainCard title="Create New Place">
       <form autoComplete="off" noValidate onSubmit={handleSubmit}>
         <Grid container spacing={gridSpacing}>
@@ -643,7 +654,13 @@ const PlaceCreate = () => {
               error={!!formErrors.latitude} // Chuyển trạng thái lỗi sang boolean
               helperText={formErrors.latitude}
             />
-            <SingleSelect label="Category" options={categories} onChange={(name, value) => handleSelectionChange(name, value)} name="categoryId" error={formErrors.categoryId} />
+            <SingleSelect label="Category"
+              open={isDialogOpen}
+              options={categories}
+              onChange={(name, value) => handleSelectionChange(name, value)}
+              name="categoryId"
+              error={formErrors.categoryId}
+              onSave={handleSaveNewCategory} />
             <TextField
               fullWidth
               label="Website"
