@@ -89,6 +89,14 @@ const utilities = {
           url: '/user/user-ban',
           breadcrumbs: false
         }
+        ,
+        {
+          id: 'user-create',
+          title: 'User Create',
+          type: 'item',
+          url: '/user/user-create',
+          breadcrumbs: false
+        }
       ]
     }
   ]

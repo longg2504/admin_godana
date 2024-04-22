@@ -5,7 +5,7 @@ import { DataGrid } from '@mui/x-data-grid';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
-import { gridSpacing } from 'store/constant';
+//import { gridSpacing } from 'store/constant';
 import SubCard from 'ui-component/cards/SubCard';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -39,48 +39,48 @@ const columns = [
     width: 150,
   }
 ];
+ export function RegistrationForm() {
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+  
+    const handleSubmit = (event) => {
+      event.preventDefault();
+      // Xử lý dữ liệu đăng ký ở đây
+      console.log('Submit:', username, email, password);
+    };
+  
+    return (
+      <form onSubmit={handleSubmit}>
+        <TextField
+          label="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <Button type="submit" variant="contained" color="primary">
+          Register
+        </Button>
+      </form>
+    );
 
-export function RegistrationForm () {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // Xử lý dữ liệu đăng ký ở đây
-    console.log('Submit:', username, email, password);
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <TextField
-        label="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        label="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        label="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        fullWidth
-        margin="normal"
-      />
-      <Button type="submit" variant="contained" color="primary">
-        Register
-      </Button>
-    </form>
-  );
-}
+  }
 
 
 export function DataGridDemo() {
@@ -101,12 +101,10 @@ export function DataGridDemo() {
 
   const rows = posts.map((post) => ({
     id: post.id,
-    postTitle: post.postTitle,
-    content: post.content,
-    category: post.category.title,
+    fullName: post.fullName,
+    sex: post.sex,
     email: post.user.email,
-    phone: post.user.phone,
-    image: post.postAvatar[0].fileUrl,
+    phone: post.user.phone
   }));
 
   return (
@@ -131,16 +129,23 @@ export function DataGridDemo() {
 
 // ==============================|| CONTACT ||============================== //
 
-const UserList = () => (
-  <MainCard title="Users List">   
-    <Grid container spacing={gridSpacing}>
-
-      
+const UserCreate = () => (
+    <MainCard title="Users List">   
+    <Grid container spacing={3}>
+      {/* Phần bên trái với form đăng ký */}
+      <Grid item xs={12} md={6}>
+        <SubCard>
+          <RegistrationForm />
+        </SubCard>
+      </Grid>
+      {/* Phần bên phải với DataGridDemo */}
+      <Grid item xs={12} md={6}>
+        <SubCard>
+          <DataGridDemo />
+        </SubCard>
+      </Grid>
     </Grid>
-    <SubCard>
-      <DataGridDemo />
-    </SubCard>
   </MainCard>
 );
 
-export default UserList;
+export default UserCreate;

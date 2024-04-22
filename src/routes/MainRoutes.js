@@ -13,6 +13,8 @@ const PlaceManager = Loadable(lazy(() => import('views/utilities/PlaceManager'))
 const PlaceCreate = Loadable(lazy(() => import('views/utilities/PlaceCreate')));
 const PostList = Loadable(lazy(() => import('views/utilities/PostList')));
 const UserList = Loadable(lazy(() => import('views/utilities/UserList')));
+const UserBan = Loadable(lazy(() => import('views/utilities/UserBan')));
+const UserCreate = Loadable(lazy(() => import('views/utilities/UserCreate')));
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
@@ -64,7 +66,16 @@ const MainRoutes = {
         {
           path: 'user-list',
           element: <UserList />
-        }
+        },
+        {
+          path: 'user-ban',
+          element: <UserBan />
+        },
+        {
+          path: 'user-create',
+          element: <UserCreate />
+        },
+
       ]
     },
     {
