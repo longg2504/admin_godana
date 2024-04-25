@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-
+import { useDispatch } from 'react-redux';
 // material-ui
 import { useTheme } from '@mui/material/styles';
 import {
@@ -44,6 +44,7 @@ const ProfileSection = () => {
   const theme = useTheme();
   const customization = useSelector((state) => state.customization);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [sdm, setSdm] = useState(true);
   const [value, setValue] = useState('');
@@ -55,7 +56,16 @@ const ProfileSection = () => {
    * */
   const anchorRef = useRef(null);
   const handleLogout = async () => {
-    console.log('Logout');
+    // If using Redux, dispatch a logout action
+    dispatch({ type: 'LOGOUT' });
+
+    // If using local storage or cookies for storing the token
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('userInfo');
+
+    // Redirect to the login page or home page
+    navigate('/login'); // Adjust the route as needed for your application
+    console.log('User logged out');
   };
 
   const handleClose = (event) => {
@@ -86,6 +96,8 @@ const ProfileSection = () => {
     prevOpen.current = open;
   }, [open]);
 
+
+  
   return (
     <>
       <Chip

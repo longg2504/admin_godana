@@ -1,11 +1,21 @@
-
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'http://localhost:9000/api/user' });
+const API = axios.create({ baseURL: 'http://localhost:9000/api' });
 
-export const fetchPlaces = (params) => API.get('/place', { params });
-export const fetchPlaceById = (id) => API.get(`/place/${id}`);
-export const createPlace = (data) => API.post('/place', data);
-export const fetchUpdatePlaceById = (id, data) => API.post(`/place/${id}`, data);
-export const fetchPlaceSearch = (categoryId,search) => API.get(`/place?category=${categoryId}&search=${search}`);
+export const getAllUsers = (search) => {
+    return API.get(`/user?search=${search}`);
+  };
+// Fetch banned users list with optional search and pagination
+export const getAllBannedUsers = () => {
+  return API.get(`/user/list-ban`);
+};
 
+// Ban a user by ID
+export const banUser = (userId) => {
+  return API.delete(`/user/ban-user/${userId}`);
+};
+
+// Unban a user by ID
+export const unbanUser = (userId) => {
+  return API.post(`/user/unban-user/${userId}`);
+};
