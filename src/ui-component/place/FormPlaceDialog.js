@@ -144,7 +144,7 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '' 
 
 // ==============================|| LOCATION REGION SELECT ||============================== //
 
-function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, error, selectedOption }) {
+function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, selectedOption }) {
     const [currentSelection, setCurrentSelection] = useState(selectedOption);
 
     useEffect(() => {
@@ -162,7 +162,7 @@ function LocationRegionSelect({ label, options, onSelectionChange, name, disable
     };
 
     return (
-        <FormControl fullWidth margin="normal" error={!!error}>
+        <FormControl fullWidth margin="normal" >
             <InputLabel id={`${label}-label`}>{label}</InputLabel>
             <Select
                 labelId={`${label}-label`}
@@ -181,7 +181,6 @@ function LocationRegionSelect({ label, options, onSelectionChange, name, disable
                     </MenuItem>
                 ))}
             </Select>
-            {!!error && <FormHelperText>{error}</FormHelperText>}
         </FormControl>
     );
 }
@@ -208,7 +207,7 @@ function ProvinceSelect() {
 
 // ==============================|| LOCATION REGION SELECT ||============================== //
 // ==============================|| SINGLE SELECT ||============================== //
-function SingleSelect({ label, options, onChange, name, error, selectedOption }) {
+function SingleSelect({ label, options, onChange, name, error, selectedOption, setFormData }) {
     useEffect(() => {
         if (selectedOption) {
             setCurrentSelection(selectedOption);
@@ -246,9 +245,17 @@ function SingleSelect({ label, options, onChange, name, error, selectedOption })
         if (value === 'add_new') {
             setCategoryDialogOpen(true);
         } else {
+            if (setFormData) {
+                setFormData(prev => ({
+                    ...prev,
+                    categoryId: value,
+                    categoryName: options.find(opt => opt.id === value).title
+                }));
+            }
             onChange(name, value);
         }
     };
+
 
     const handleCategoryDialogToggle = () => {
         setCategoryDialogOpen(!categoryDialogOpen);
@@ -306,7 +313,6 @@ function SingleSelect({ label, options, onChange, name, error, selectedOption })
 
 // Main dialog component
 const FormPlaceDialog = ({ open, editData, onClose, }) => {
-    const [formErrors, setFormErrors] = useState({});
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -314,54 +320,54 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
     const [selectedCategoryId, setSelectedCategoryId] = useState('');
     const [selectedDistrictId, setSelectedDistrictId] = useState('');
     const [selectedWardId, setSelectedWardId] = useState('');
-    
+
     // ==============================|| VALIDATION FIELD ||============================== //
 
-    const validateField = (name, value) => {
-        switch (name) {
-            case 'placeTitle':
-                if (!value.trim()) return "Place Title is required";
-                break;
-            case 'content':
-                if (!value.trim()) return "Content is required";
-                break;
-            case 'longitude':
-                if (!value.trim()) return "Longitude is required";
-                else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid longitude format";
-                break;
-            case 'latitude':
-                if (!value.trim()) return "Latitude is required";
-                else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid latitude format"; break;
-            case 'address':
-                if (!value.trim()) return "Address is required";
-                break;
-            case 'email':
-                if (!value.trim()) return "Email is required";
-                else if (!/\S+@\S+\.\S+/.test(value)) return "Email is not valid";
-                break;
-            case 'phone':
-                if (!value.trim()) return "Phone is required";
-                else if (!/^\d{1,10}$/.test(value)) return "Phone must be up to 10 digits";
-                break;
-            case 'website':
-                if (!value.trim()) return "Website is required";
-                // else if (!/^(https?:\/\/)?([\da-z.-]+)\.([a-z]{2,6})([\w .-]*)*\/?$/.test(value)) return "Invalid website format";
-                break;
-            case 'openTime':
-            case 'closeTime':
-                if (!value.trim()) return `${name} is required`;
-                else if (!/^([1-9]|1[012]):[0-5][0-9]\s?(AM|PM)$/i.test(value)) return "Invalid time format, expected h:mm AM/PM";
-                break;
-            case 'categoryId':
-            case 'districtId':
-            case 'wardId':
-                // if (!value) return `${name.replace('Id', '')} is required`;
-                break;
-            default:
-                return "";
-        }
-        return "";
-    };
+    // const validateField = (name, value) => {
+    //     switch (name) {
+    //         case 'placeTitle':
+    //             if (!value.trim()) return "Place Title is required";
+    //             break;
+    //         case 'content':
+    //             if (!value.trim()) return "Content is required";
+    //             break;
+    //         case 'longitude':
+    //             if (!value.trim()) return "Longitude is required";
+    //             else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid longitude format";
+    //             break;
+    //         case 'latitude':
+    //             if (!value.trim()) return "Latitude is required";
+    //             else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid latitude format"; break;
+    //         case 'address':
+    //             if (!value.trim()) return "Address is required";
+    //             break;
+    //         case 'email':
+    //             if (!value.trim()) return "Email is required";
+    //             else if (!/\S+@\S+\.\S+/.test(value)) return "Email is not valid";
+    //             break;
+    //         case 'phone':
+    //             if (!value.trim()) return "Phone is required";
+    //             else if (!/^\d{1,10}$/.test(value)) return "Phone must be up to 10 digits";
+    //             break;
+    //         case 'website':
+    //             if (!value.trim()) return "Website is required";
+    //             // else if (!/^(https?:\/\/)?([\da-z.-]+)\.([a-z]{2,6})([\w .-]*)*\/?$/.test(value)) return "Invalid website format";
+    //             break;
+    //         case 'openTime':
+    //         case 'closeTime':
+    //             if (!value.trim()) return `${name} is required`;
+    //             else if (!/^([1-9]|1[012]):[0-5][0-9]\s?(AM|PM)$/i.test(value)) return "Invalid time format, expected h:mm AM/PM";
+    //             break;
+    //         case 'categoryId':
+    //         case 'districtId':
+    //         case 'wardId':
+    //             // if (!value) return `${name.replace('Id', '')} is required`;
+    //             break;
+    //         default:
+    //             return "";
+    //     }
+    //     return "";
+    // };
     // ==============================|| CATEGORY API ||============================== //
 
     useEffect(() => {
@@ -389,12 +395,13 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
 
     // ==============================|| UPLOAD IMAGE ||============================== //
     const initialImagePreviews = editData?.placeAvatar?.map(image => {
-        return image.fileUrl ? { url: image.fileUrl } : null;
+        return image.fileArray ? { url: image.fileArray } : null;
     }).filter(item => item !== null) || [];
 
     const [imagePreviews, setImagePreviews] = useState(initialImagePreviews);
 
     const handleFileChange = (event) => {
+        console.log("Event received:", event);
         // Check if event and files are defined
         if (event && event.target && event.target.files) {
             const files = event.target.files; // This should be a FileList object
@@ -405,13 +412,9 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
             // Add files directly without creating object URLs
             const fileArray = Array.from(files); // Convert FileList to an array
 
-            setImagePreviews((prev) => [
-                ...prev,
-                ...fileArray.map(file => ({
-                    file,
-                    url: URL.createObjectURL(file) // We still create URLs for preview purposes
-                }))
-            ]);
+            setImagePreviews(prevImagePreviews => 
+                [...prevImagePreviews, ...newImagePreviews]);
+
             setFormData((prev) => ({
                 ...prev,
                 placeAvatar: [...prev.placeAvatar, ...fileArray] // Add files directly
@@ -423,6 +426,14 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
     };
 
 
+    useEffect(() => {
+        if (editData) {
+            const newImagePreviews = editData?.placeAvatar?.map(image => {
+                return { url: image.fileUrl };
+            }) || [];
+            setImagePreviews(newImagePreviews);
+        }
+    }, [editData]);
 
 
 
@@ -438,50 +449,35 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
     }, []);
 
     const handleSelectionChange = (name, value) => {
-        let updatedValues = { [name]: value };
-    
         if (name === "districtId") {
-            // Fetch new wards when a district is selected
             fetchWard(value).then(response => {
                 const wardsData = response.data.results.map(ward => ({
                     id: ward.ward_id,
                     title: ward.ward_name
                 }));
                 setWards(wardsData);
-                // Reset ward selection when district changes
-                updatedValues.wardId = ''; // Reset the wardId when district changes
+                // After fetching new wards, reset the selectedWardId if it doesn't exist in the new ward list
                 setFormData(prevState => ({
                     ...prevState,
-                    ...updatedValues,
-                    wardId: ''
+                    districtId: value,
+                    wardId: wardsData.find(ward => ward.id === prevState.wardId) ? prevState.wardId : ''
                 }));
             }).catch(error => {
                 console.error("Failed to fetch wards:", error);
-                setWards([]); // Clear wards if fetch fails
+                setWards([]);
                 setFormData(prevState => ({
                     ...prevState,
-                    ...updatedValues,
+                    districtId: value,
                     wardId: ''
                 }));
             });
         } else if (name === "wardId") {
-            // Update wardId normally
             setFormData(prevState => ({
                 ...prevState,
-                ...updatedValues
-            }));
-        } else {
-            setFormData(prevState => ({
-                ...prevState,
-                ...updatedValues
+                [name]: value
             }));
         }
-    
-        const errorMessage = validateField(name, value);
-        setFormErrors(prevErrors => ({ ...prevErrors, [name]: errorMessage }));
     };
-    
-
     useEffect(() => {
         if (selectedDistrictId) {
             fetchWard(selectedDistrictId).then(response => {
@@ -490,10 +486,9 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
                     title: ward.ward_name
                 }));
                 setWards(wardsData);
-                handleSelectionChange("wardId", '');
             }).catch(error => console.error("Failed to fetch wards:", error));
         } else {
-            setWards([]);  // Clear wards if no district is selected
+            setWards([]); // Clear wards if no district is selected
         }
     }, [selectedDistrictId]);  // Dependency should be on selectedDistrictId to refetch when it changes
 
@@ -511,14 +506,6 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
         }
     }, [editData]);
 
-    useEffect(() => {
-        if (editData) {
-            const newImagePreviews = editData?.placeAvatar?.map(image => {
-                return { url: image.fileUrl };
-            }) || [];
-            setImagePreviews(newImagePreviews);
-        }
-    }, [editData]);
 
 
     const [formData, setFormData] = useState({
@@ -589,13 +576,13 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
         // API call to update the place
         try {
             const response = await fetchUpdatePlaceById(editData.id, formDataToSend);
-            console.log('Place ID:'+editData.id);
+            console.log('Place ID:' + editData.id);
             console.log('Update successful:', response.data);
             openSnackbar('Update successful!', 'success');
             onClose();
         } catch (error) {
             console.error('Failed to update place:', error);
-            console.log('Place ID:'+editData.id);
+            console.log('Place ID:' + editData.id);
             openSnackbar('Failed to update place. Please try again.', 'error');
             console.log('Form Data:', Array.from(formDataToSend.entries()));
         }
@@ -612,7 +599,7 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
                         <TextField label="Content" name="content" fullWidth onChange={handleChange} value={formData.content} margin="normal" multiline />
                         <TextField label="Longitude" name="longitude" fullWidth onChange={handleChange} value={formData.longitude} margin="normal" />
                         <TextField label="Latitude" name="latitude" fullWidth onChange={handleChange} value={formData.latitude} margin="normal" />
-                        <SingleSelect label="Category" name="category" options={categories} onChange={(name, value) => handleSelectionChange(name, value)} selectedOption={selectedCategoryId} />
+                        <SingleSelect label="Category" name="category" options={categories} onChange={(name, value) => handleSelectionChange(name, value)} selectedOption={selectedCategoryId} setFormData={setFormData} />
                     </Grid>
                     <Grid item xs={12} md={4}>
                         <TextField label="Website" name="website" fullWidth onChange={handleChange} value={formData.website} margin="normal" />
@@ -632,15 +619,14 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
                             disabled={false}
                             name="district"
                             selectedOption={selectedDistrictId}
-                            error={formErrors.districtId}
                         />
                         <LocationRegionSelect label="Ward"
                             options={wards}
                             onSelectionChange={(name, value) => handleSelectionChange(name, value)}
                             name="ward"
                             selectedOption={selectedWardId}
-                            // disabled={!selectedDistrictId} // Disable nếu district chưa được chọn
-                            error={formErrors.wardId} />
+                        // disabled={!selectedDistrictId} // Disable nếu district chưa được chọn
+                        />
                         <SubCard>
                             <UploadImage
                                 imagePreviews={imagePreviews}
