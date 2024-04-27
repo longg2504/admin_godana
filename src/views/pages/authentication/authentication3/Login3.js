@@ -1,14 +1,12 @@
 import { Link } from 'react-router-dom';
 
 // material-ui
-import { Divider, Grid} from '@mui/material';
+import { Divider, Grid } from '@mui/material';
 
 // project imports
 import AuthWrapper1 from '../AuthWrapper1';
 import AuthCardWrapper from '../AuthCardWrapper';
 import AuthLogin from '../auth-forms/AuthLogin';
-import Logo from 'ui-component/Logo';
-
 // assets
 
 // ================================|| AUTH3 - LOGIN ||================================ //
@@ -25,12 +23,19 @@ const Login = () => {
                 <Grid container spacing={2} alignItems="center" justifyContent="center">
                   <Grid item sx={{ mb: 3 }}>
                     <Link to="#">
-                      {/*=============================================== Logo =============================================== */}
-                      <Logo />
-                      {/*=============================================== Logo =============================================== */}
+                      <img
+                        src="https://res.cloudinary.com/dmlftry2o/image/upload/f_auto,q_auto/kidxz3twmwk3afojlgys"
+                        alt="Logo"
+                        width="150"
+                        style={{
+                          position: 'absolute',
+                          top: '200px',
+                          right: '860px',
+                          borderRadius: '11px'
+                        }} />
                     </Link>
                   </Grid>
-                  
+
                   <Grid item xs={12}>
                     <AuthLogin />
                   </Grid>

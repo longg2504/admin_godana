@@ -188,7 +188,7 @@ const columns = [
     field: 'actions',
     headerName: 'Actions',
     sortable: false,
-    width: 150,
+    width: 100,
     renderCell: (params) => (
       <ActionButtons
         id={params.row.id}
@@ -226,6 +226,8 @@ export function DataGridDemo({ onRowClick }) {
 
     getPlaces();
   }, []);
+
+  
 
   const getAddress = (locationRegion) => {
     const parts = [locationRegion?.address, locationRegion?.districtName, locationRegion?.wardName];
@@ -304,14 +306,12 @@ const PlaceManager = () => {
 
       setEditData({
         // ...response.data,
+        id: response.data.id,
         placeTitle: response.data.placeTitle,
         content: response.data.content,
         longitude: response.data.longitude,
         latitude: response.data.latitude,
-        placeAvatar: response.data.placeAvatar.map(avatar => ({
-          file: null,
-          url: avatar.fileUrl
-        })),
+        placeAvatar: response.data.placeAvatar,
         website: response.data.contact.website,
         email: response.data.contact.email,
         phone: response.data.contact.phone,
@@ -326,6 +326,7 @@ const PlaceManager = () => {
         wardName: response.data.locationRegion.wardName,
       });
 
+      console.log('ID:', response.data.id);
       console.log('placeTitle:', response.data.placeTitle);
       console.log('content:', response.data.content);
       console.log('longitude:', response.data.longitude);
@@ -381,7 +382,7 @@ const PlaceManager = () => {
       <SubCard>
         <DataGridDemo onRowClick={handleRowClick} />
 
-        <FormPlaceDialog editData={editData} open={isFormDialogOpen} onClose={handleFormDialogClose} />
+        <FormPlaceDialog editData={editData} open={isFormDialogOpen} onClose={handleFormDialogClose}/>
 
       </SubCard>
     </MainCard>

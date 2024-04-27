@@ -305,7 +305,7 @@ function SingleSelect({ label, options, onChange, name, error, selectedOption })
 
 
 // Main dialog component
-const FormPlaceDialog = ({ open, editData, onClose }) => {
+const FormPlaceDialog = ({ open, editData, onClose, }) => {
     const [formErrors, setFormErrors] = useState({});
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
@@ -314,6 +314,7 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
     const [selectedCategoryId, setSelectedCategoryId] = useState('');
     const [selectedDistrictId, setSelectedDistrictId] = useState('');
     const [selectedWardId, setSelectedWardId] = useState('');
+    
     // ==============================|| VALIDATION FIELD ||============================== //
 
     const validateField = (name, value) => {
@@ -389,42 +390,40 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
     // ==============================|| UPLOAD IMAGE ||============================== //
     const initialImagePreviews = editData?.placeAvatar?.map(image => {
         return image.fileUrl ? { url: image.fileUrl } : null;
-      }).filter(item => item !== null) || [];
-      
-      const [imagePreviews, setImagePreviews] = useState(initialImagePreviews);
-      
-      const handleFileChange = (event) => {
+    }).filter(item => item !== null) || [];
+
+    const [imagePreviews, setImagePreviews] = useState(initialImagePreviews);
+
+    const handleFileChange = (event) => {
         // Check if event and files are defined
         if (event && event.target && event.target.files) {
             const files = event.target.files; // This should be a FileList object
-    
+
             // Clear the current file input value to ensure that re-uploading the same file triggers onChange
             event.target.value = '';
-    
+
+            // Add files directly without creating object URLs
             const fileArray = Array.from(files); // Convert FileList to an array
-            const newImagePreviews = fileArray.map((file) => {
-                try {
-                    const objectURL = URL.createObjectURL(file);
-                    return { file, url: objectURL };
-                } catch (error) {
-                    console.error('Error creating object URL:', error);
-                    return null; // Return null for any files that fail to create a URL
-                }
-            }).filter(item => item !== null); // Filter out null entries
-    
-            setImagePreviews((prev) => [...prev, ...newImagePreviews]);
+
+            setImagePreviews((prev) => [
+                ...prev,
+                ...fileArray.map(file => ({
+                    file,
+                    url: URL.createObjectURL(file) // We still create URLs for preview purposes
+                }))
+            ]);
             setFormData((prev) => ({
                 ...prev,
-                placeAvatar: [...prev.placeAvatar, ...fileArray] // Assuming placeAvatar is expecting an array of File objects
+                placeAvatar: [...prev.placeAvatar, ...fileArray] // Add files directly
             }));
         } else {
             // Log an error or handle the case where files are not present
             console.error('No files selected or event is not defined.');
         }
     };
-    
-    
-      
+
+
+
 
 
     // ==============================|| LOCATION REGION ||============================== //
@@ -439,48 +438,49 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
     }, []);
 
     const handleSelectionChange = (name, value) => {
-        // Cập nhật giá trị cho districtId hoặc wardId
         let updatedValues = { [name]: value };
-
-        // Tìm và cập nhật districtName nếu districtId được thay đổi
-        if (name === "district") {
-            const selectedDistrict = districts.find(district => district.id === value);
-            if (selectedDistrict) {
-                updatedValues.districtName = selectedDistrict.title;
-                // Khi chọn district mới, cần reset ward
-                setWards([]);
-                updatedValues.wardId = '';
-                updatedValues.wardName = '';
-            }
-
+    
+        if (name === "districtId") {
+            // Fetch new wards when a district is selected
             fetchWard(value).then(response => {
                 const wardsData = response.data.results.map(ward => ({
                     id: ward.ward_id,
                     title: ward.ward_name
                 }));
                 setWards(wardsData);
+                // Reset ward selection when district changes
+                updatedValues.wardId = ''; // Reset the wardId when district changes
+                setFormData(prevState => ({
+                    ...prevState,
+                    ...updatedValues,
+                    wardId: ''
+                }));
             }).catch(error => {
                 console.error("Failed to fetch wards:", error);
+                setWards([]); // Clear wards if fetch fails
+                setFormData(prevState => ({
+                    ...prevState,
+                    ...updatedValues,
+                    wardId: ''
+                }));
             });
+        } else if (name === "wardId") {
+            // Update wardId normally
+            setFormData(prevState => ({
+                ...prevState,
+                ...updatedValues
+            }));
+        } else {
+            setFormData(prevState => ({
+                ...prevState,
+                ...updatedValues
+            }));
         }
-
-        // Tìm và cập nhật wardName nếu wardId được thay đổi
-        if (name === "ward") {
-            const selectedWard = wards.find(ward => ward.id === value);
-            if (selectedWard) {
-                updatedValues.wardName = selectedWard.title;
-            }
-        }
-
-        // Cập nhật formData với giá trị mới
-        setFormData(prevState => ({
-            ...prevState,
-            ...updatedValues
-        }));
-
+    
         const errorMessage = validateField(name, value);
         setFormErrors(prevErrors => ({ ...prevErrors, [name]: errorMessage }));
     };
+    
 
     useEffect(() => {
         if (selectedDistrictId) {
@@ -568,57 +568,36 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        // Validate all fields in formData
-        let hasError = false;
-        let newFormErrors = {};
-        for (const field in formData) {
-            const errorMessage = validateField(field, formData[field]);
-            if (errorMessage) {
-                newFormErrors[field] = errorMessage;
-                hasError = true;
-            }
-        }
-
-        // If there are validation errors, set them and stop the submission
-        if (hasError) {
-            setFormErrors(newFormErrors);
-            return;
-        }
-
-        // If no validation errors, proceed with form submission
         const formDataToSend = new FormData();
-
-        console.log("Form Data To Send 1: " + formDataToSend);
-        // Append non-file fields to formDataToSend
         Object.keys(formData).forEach(key => {
-            if (key !== 'placeAvatar') { // Exclude file fields for now
+            if (key === 'placeAvatar') {
+                formData[key].forEach(file => {
+                    if (file instanceof File) { // Ensure only File objects are appended
+                        formDataToSend.append(key, file);
+                    }
+                });
+            } else {
                 formDataToSend.append(key, formData[key]);
             }
         });
 
-        // Append file fields to formDataToSend, if they exist
-        if (formData.placeAvatar && formData.placeAvatar.length) {
-            formData.placeAvatar.forEach((file, index) => {
-                // Append each file under the name 'placeAvatar[]' to allow for array-like processing on the server side
-                formDataToSend.append(`placeAvatar[${index}]`, file.file);
-            });
-        }
-
-        // Check if any invalid files were attempted to be uploaded
-        if (invalidFiles.length > 0) {
-            openSnackbar('Some files were not valid images and have not been uploaded.', 'error');
-            return;
+        // Log data for debugging
+        for (let [key, value] of formDataToSend.entries()) {
+            console.log(`${key}: ${value}`);
         }
 
         // API call to update the place
         try {
             const response = await fetchUpdatePlaceById(editData.id, formDataToSend);
+            console.log('Place ID:'+editData.id);
             console.log('Update successful:', response.data);
             openSnackbar('Update successful!', 'success');
             onClose();
         } catch (error) {
             console.error('Failed to update place:', error);
+            console.log('Place ID:'+editData.id);
             openSnackbar('Failed to update place. Please try again.', 'error');
+            console.log('Form Data:', Array.from(formDataToSend.entries()));
         }
     };
 
@@ -660,7 +639,7 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
                             onSelectionChange={(name, value) => handleSelectionChange(name, value)}
                             name="ward"
                             selectedOption={selectedWardId}
-                            disabled={!selectedDistrictId} // Disable nếu district chưa được chọn
+                            // disabled={!selectedDistrictId} // Disable nếu district chưa được chọn
                             error={formErrors.wardId} />
                         <SubCard>
                             <UploadImage
