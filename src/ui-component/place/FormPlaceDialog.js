@@ -4,17 +4,16 @@ import {
     TextField, Button, DialogActions,
     Grid, FormControl, InputLabel, Select,
     OutlinedInput, FormHelperText, MenuItem,
-    Box, ImageList, ImageListItem, Snackbar, Alert,
-    ImageListItemBar, IconButton
+    Snackbar, Alert,
 }
     from '@mui/material';
 
-import CloseIcon from '@mui/icons-material/Close';
 import SubCard from 'ui-component/cards/SubCard';
 import FormDialog from 'ui-component/FormDialog'
 import { fetchUpdatePlaceById } from 'constant/constURL/URLPlace';
 import { fetchCategory, createCategory } from 'constant/constURL/URLCategory';
 import { fetchDistrict, fetchWard } from 'constant/constURL/URLLocationRegion';
+import UploadImage from 'views/utilities/Place/UploadImage';
 
 const createTimeOptions = (start, end, step) => {
     const options = [];
@@ -139,118 +138,6 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '' 
     );
 };
 
-// ==============================|| UPLOAD IMAGE ||============================== //
-
-// Component to upload images
-const UploadImage = ({ onChange }) => {
-    const [imagePreviews, setImagePreviews] = useState([]);
-    const [open, setOpen] = useState(false);
-    const [selectedImage, setSelectedImage] = useState('');
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: ''
-    });
-
-    // Function to open the snackbar
-    const openSnackbar = (message) => {
-        setSnackbar({ open: true, message });
-    };
-
-    // Function to close the snackbar
-    const handleSnackbarClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setSnackbar({ ...snackbar, open: false });
-    };
-
-    const handleFileChange = (event) => {
-        if (event.target.files) {
-            const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
-            const filesArray = Array.from(event.target.files).filter(file =>
-                validImageTypes.includes(file.type)
-            ).map(file => ({
-                file,
-                url: URL.createObjectURL(file)
-            }));
-
-            if (filesArray.length !== event.target.files.length) {
-                openSnackbar('Some files were ignored because they are not valid images.');
-            }
-
-            setImagePreviews(prev => [...prev, ...filesArray]);
-            onChange(filesArray);
-        }
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-    };
-
-    const handleDeleteImage = (index) => {
-        const filteredImages = imagePreviews.filter((_, idx) => idx !== index);
-        setImagePreviews(filteredImages);
-    };
-
-    const handleOpenImage = (url) => {
-        setSelectedImage(url);
-        setOpen(true);
-    };
-
-    return (
-        <Box>
-            <input
-                accept="image/jpeg, image/png, image/gif"
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                style={{ display: 'none' }}
-                id="raised-button-file"
-            />
-            <label htmlFor="raised-button-file">
-                <Button variant="contained" component="span">
-                    Upload Images
-                </Button>
-            </label>
-            <ImageList cols={3} gap={8}>
-                {imagePreviews.map((item, index) => (
-                    <ImageListItem key={index}>
-                        <Button
-                            onClick={() => handleOpenImage(item.url)}
-                            style={{ padding: 0, width: '100%', height: '100%' }}
-                            component="span"
-                        >
-                            <img
-                                src={item.url}
-                                alt={`preview ${index}`}
-                                loading="lazy"
-                                style={{ width: '100%', height: '100%' }}
-                            />
-                        </Button>
-                        <ImageListItemBar
-                            actionIcon={
-                                <IconButton onClick={() => handleDeleteImage(index)}>
-                                    <CloseIcon color="error" />
-                                </IconButton>
-                            }
-                        />
-                    </ImageListItem>
-                ))}
-            </ImageList>
-            <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>{"Preview"}</DialogTitle>
-                <DialogContent>
-                    <img src={selectedImage} alt="Enlarged preview" style={{ width: '100%' }} />
-                </DialogContent>
-            </Dialog>
-            <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
-                <Alert onClose={handleSnackbarClose} severity="warning" sx={{ width: '100%' }}>
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
-        </Box>
-    );
-};
 
 // ==============================|| UPLOAD IMAGE ||============================== //
 
@@ -258,7 +145,8 @@ const UploadImage = ({ onChange }) => {
 // ==============================|| LOCATION REGION SELECT ||============================== //
 
 function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, error, selectedOption }) {
-    const [currentSelection, setCurrentSelection] = useState('');
+    const [currentSelection, setCurrentSelection] = useState(selectedOption);
+
     useEffect(() => {
         if (selectedOption) {
             setCurrentSelection(selectedOption);
@@ -266,9 +154,10 @@ function LocationRegionSelect({ label, options, onSelectionChange, name, disable
     }, [selectedOption]);
 
     const handleChange = (event) => {
-        setSelectedOption(event.target.value);
+        const newSelection = event.target.value;
+        setCurrentSelection(newSelection); // Update the local state
         if (onSelectionChange) {
-            onSelectionChange(name, event.target.value); // Pass both the field name and value
+            onSelectionChange(name, newSelection); // Pass both the field name and value
         }
     };
 
@@ -417,8 +306,6 @@ function SingleSelect({ label, options, onChange, name, error, selectedOption })
 
 // Main dialog component
 const FormPlaceDialog = ({ open, editData, onClose }) => {
-    console.log("Form status: " + open);
-
     const [formErrors, setFormErrors] = useState({});
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
@@ -467,7 +354,7 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
             case 'categoryId':
             case 'districtId':
             case 'wardId':
-                if (!value) return `${name.replace('Id', '')} is required`;
+                // if (!value) return `${name.replace('Id', '')} is required`;
                 break;
             default:
                 return "";
@@ -500,15 +387,44 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
     };
 
     // ==============================|| UPLOAD IMAGE ||============================== //
-    const handleFileChange = (event) => {
-        if (event.target.files.length) {
-            const files = Array.from(event.target.files);
-            setFormData(formData => ({
-                ...formData,
-                placeAvatar: [...formData.placeAvatar, ...files]
+    const initialImagePreviews = editData?.placeAvatar?.map(image => {
+        return image.fileUrl ? { url: image.fileUrl } : null;
+      }).filter(item => item !== null) || [];
+      
+      const [imagePreviews, setImagePreviews] = useState(initialImagePreviews);
+      
+      const handleFileChange = (event) => {
+        // Check if event and files are defined
+        if (event && event.target && event.target.files) {
+            const files = event.target.files; // This should be a FileList object
+    
+            // Clear the current file input value to ensure that re-uploading the same file triggers onChange
+            event.target.value = '';
+    
+            const fileArray = Array.from(files); // Convert FileList to an array
+            const newImagePreviews = fileArray.map((file) => {
+                try {
+                    const objectURL = URL.createObjectURL(file);
+                    return { file, url: objectURL };
+                } catch (error) {
+                    console.error('Error creating object URL:', error);
+                    return null; // Return null for any files that fail to create a URL
+                }
+            }).filter(item => item !== null); // Filter out null entries
+    
+            setImagePreviews((prev) => [...prev, ...newImagePreviews]);
+            setFormData((prev) => ({
+                ...prev,
+                placeAvatar: [...prev.placeAvatar, ...fileArray] // Assuming placeAvatar is expecting an array of File objects
             }));
+        } else {
+            // Log an error or handle the case where files are not present
+            console.error('No files selected or event is not defined.');
         }
     };
+    
+    
+      
 
 
     // ==============================|| LOCATION REGION ||============================== //
@@ -574,6 +490,7 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
                     title: ward.ward_name
                 }));
                 setWards(wardsData);
+                handleSelectionChange("wardId", '');
             }).catch(error => console.error("Failed to fetch wards:", error));
         } else {
             setWards([]);  // Clear wards if no district is selected
@@ -585,13 +502,22 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
     useEffect(() => {
         if (editData) {
             setFormData({
-                ...formData, ...editData
+                ...formData,
+                ...editData
             });
             setSelectedCategoryId(editData.categoryId);
             setSelectedDistrictId(editData.districtId);
             setSelectedWardId(editData.wardId);
         }
+    }, [editData]);
 
+    useEffect(() => {
+        if (editData) {
+            const newImagePreviews = editData?.placeAvatar?.map(image => {
+                return { url: image.fileUrl };
+            }) || [];
+            setImagePreviews(newImagePreviews);
+        }
     }, [editData]);
 
 
@@ -688,10 +614,8 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
         try {
             const response = await fetchUpdatePlaceById(editData.id, formDataToSend);
             console.log('Update successful:', response.data);
-
             openSnackbar('Update successful!', 'success');
             onClose();
-
         } catch (error) {
             console.error('Failed to update place:', error);
             openSnackbar('Failed to update place. Please try again.', 'error');
@@ -739,7 +663,10 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
                             disabled={!selectedDistrictId} // Disable nếu district chưa được chọn
                             error={formErrors.wardId} />
                         <SubCard>
-                            <UploadImage onChange={handleFileChange} />
+                            <UploadImage
+                                imagePreviews={imagePreviews}
+                                onChange={handleFileChange}
+                            />
                         </SubCard>
                     </Grid>
                 </Grid>

@@ -9,9 +9,11 @@ import {
   TextField,
   Button,
   Select,
-  Avatar
+  Avatar, IconButton
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -94,6 +96,18 @@ function SingleSelect({ label, options, onChange, setCategories }) {
 
 // ===============================|| DATAGRID ||=============================== //
 
+function ActionButtons({ id, onEdit, onDelete }) {
+  return (
+    <strong>
+      <IconButton onClick={() => onEdit(id)}>
+        <EditIcon />
+      </IconButton>
+      <IconButton onClick={() => onDelete(id)}>
+        <DeleteIcon />
+      </IconButton>
+    </strong>
+  );
+}
 
 function ImageField({ value }) {
   return (
@@ -171,7 +185,31 @@ const columns = [
     sortable: false,
     width: 150,
   },
+  {
+    field: 'actions',
+    headerName: 'Actions',
+    sortable: false,
+    width: 150,
+    renderCell: (params) => (
+      <ActionButtons
+        id={params.row.id}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+    ),
+    align: 'center'
+  }
 ];
+
+const handleEdit = (id) => {
+  console.log("Editing:", id);
+  // Mở form chỉnh sửa hoặc thực hiện hành động khác
+};
+
+const handleDelete = (id) => {
+  console.log("Deleting:", id);
+  // Hiển thị hộp thoại xác nhận xóa hoặc thực hiện hành động khác
+};
 
 
 export function DataGridDemo({ onRowClick }) {
@@ -265,18 +303,13 @@ const PlaceManager = () => {
       const response = await fetchPlaceById(params.row.id);
       console.log(params.row.id);
 
-      // Check if response.data and response.data.placeAvatar are defined and have the right structure
-      // if (!response.data || !Array.isArray(response.data.placeAvatar[0].fileUrl) || response.data.placeAvatar.length === 0) {
-      //   throw new Error('placeAvatar is not an array or is empty');
-      // }
-
       setEditData({
         // ...response.data,
         placeTitle: response.data.placeTitle,
         content: response.data.content,
         longitude: response.data.longitude,
         latitude: response.data.latitude,
-        placeAvatar: response.data.place.placeAvatar[0].fileUrl,
+        placeAvatar: response.data.placeAvatar,
         website: response.data.contact.website,
         email: response.data.contact.email,
         phone: response.data.contact.phone,
@@ -295,7 +328,7 @@ const PlaceManager = () => {
       console.log('content:', response.data.content);
       console.log('longitude:', response.data.longitude);
       console.log('latitude:', response.data.latitude);
-      console.log('placeAvatar:', response.data.place.placeAvatar[0].fileUrl);
+      console.log('placeAvatar:', response.data.placeAvatar);
       console.log('website:', response.data.contact.website);
       console.log('email:', response.data.contact.email);
       console.log('phone:', response.data.contact.phone);
@@ -307,7 +340,7 @@ const PlaceManager = () => {
       console.log('districtId:', response.data.locationRegion.districtId);
       console.log('districtName:', response.data.locationRegion.districtName);
       console.log('wardId:', response.data.locationRegion.wardId);
-      console.log('wardId:', response.data.locationRegion.wardName);
+      console.log('wardName:', response.data.locationRegion.wardName);
 
       setIsFormDialogOpen(true);
     } catch (error) {
@@ -326,11 +359,9 @@ const PlaceManager = () => {
     <MainCard title="PLACE MANAGEMENT">
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-          <SubCard>
-            <Grid item xs={12} md={6}>
+          <SubCard container>
+            <Grid item xs={12} md={5}>
               <SearchSection style={{ width: '100%' }} />
-            </Grid>
-            <Grid item xs={12} md={2}>
               <SingleSelect
                 label="Category"
                 options={categories.map(cat => ({ id: cat.id, title: cat.name }))}
@@ -341,7 +372,7 @@ const PlaceManager = () => {
           </SubCard>
         </Grid>
       </Grid>
-      <Divider component="" />
+      <Divider component="" style={{ padding: (10, 0) }} />
       <SubCard>
         <DataGridDemo onRowClick={handleRowClick} />
 
