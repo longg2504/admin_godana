@@ -25,8 +25,7 @@ const UploadImage = ({ imagePreviews, onChange }) => {
     const handleRemoveImage = (index) => {
         const updatedPreviews = previews.filter((_, i) => i !== index);
         setPreviews(updatedPreviews);
-        onChange(updatedPreviews.map(p => p.file));
-        // Revoke the URL to avoid memory leaks
+        onChange(updatedPreviews); // Cập nhật state của FormPlaceDialog
         URL.revokeObjectURL(previews[index].url);
     };
 

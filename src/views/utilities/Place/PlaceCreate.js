@@ -564,7 +564,6 @@ const PlaceCreate = () => {
       console.log(`${key}: ${value}`);
     }
 
-
     try {
       const response = await createPlace(submitData);
       setSnackbarMessage('Place successfully created!');

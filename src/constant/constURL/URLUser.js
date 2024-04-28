@@ -12,7 +12,7 @@ export const getAllBannedUsers = () => {
 
 // Ban a user by ID
 export const banUser = (userId) => {
-  return API.delete(`/user/ban-user/${userId}`);
+  return API.post(`/user/ban-user/${userId}`);
 };
 
 // Unban a user by ID

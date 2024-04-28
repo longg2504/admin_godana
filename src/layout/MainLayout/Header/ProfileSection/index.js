@@ -64,7 +64,7 @@ const ProfileSection = () => {
     sessionStorage.removeItem('userInfo');
 
     // Redirect to the login page or home page
-    navigate('/login'); // Adjust the route as needed for your application
+    navigate('/admin/login'); // Adjust the route as needed for your application
     console.log('User logged out');
   };
 

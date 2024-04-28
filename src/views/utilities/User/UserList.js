@@ -85,7 +85,7 @@ const columns = (handleBan) => [
   }
 ];
 
-function DataGridDemo({ searchTerm, handleBan }) {
+function DataGridDemo({ searchTerm, handleBan, refreshTrigger }) {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
@@ -98,7 +98,7 @@ function DataGridDemo({ searchTerm, handleBan }) {
       }
     };
     fetchUsers();
-  }, [searchTerm]);
+  }, [searchTerm, refreshTrigger]);
 
   const rows = users.map(user => ({
     id: user.id,
@@ -128,6 +128,7 @@ function UserList() {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') {
@@ -142,6 +143,7 @@ function UserList() {
       setSnackbarMessage('User successfully banned!');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
+      setRefreshTrigger(!refreshTrigger);
     } catch (error) {
       setSnackbarMessage('Failed to ban user.');
       setSnackbarSeverity('error');
@@ -168,7 +170,7 @@ function UserList() {
       </Grid>
       <Divider component="" style={{ padding: '10px 0' }} />
       <SubCard>
-        <DataGridDemo searchTerm={searchTerm} handleBan={handleBan} />
+        <DataGridDemo searchTerm={searchTerm} handleBan={handleBan} refreshTrigger={refreshTrigger}/>
         <Snackbar
           open={openSnackbar}
           autoHideDuration={6000}
