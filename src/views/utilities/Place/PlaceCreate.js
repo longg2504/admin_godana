@@ -538,6 +538,7 @@ const PlaceCreate = () => {
       ...formData,
       placeAvatar: [...formData.placeAvatar, ...files]
     }));
+    console.log(formData.placeAvatar, "Form Avatar:")
   };
 
 
