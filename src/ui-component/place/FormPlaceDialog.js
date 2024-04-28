@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Dialog, DialogTitle, DialogContent,
     TextField, Button, DialogActions,
@@ -138,8 +138,6 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '' 
     );
 };
 
-
-// ==============================|| UPLOAD IMAGE ||============================== //
 
 
 // ==============================|| LOCATION REGION SELECT ||============================== //
@@ -394,47 +392,21 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
     };
 
     // ==============================|| UPLOAD IMAGE ||============================== //
-    const initialImagePreviews = editData?.placeAvatar?.map(image => {
-        return image.fileArray ? { url: image.fileArray } : null;
-    }).filter(item => item !== null) || [];
 
-    const [imagePreviews, setImagePreviews] = useState(initialImagePreviews);
-
-    const handleFileChange = (event) => {
-        console.log("Event received:", event);
-        // Check if event and files are defined
-        if (event && event.target && event.target.files) {
-            const files = event.target.files; // This should be a FileList object
-
-            // Clear the current file input value to ensure that re-uploading the same file triggers onChange
-            event.target.value = '';
-
-            // Add files directly without creating object URLs
-            const fileArray = Array.from(files); // Convert FileList to an array
-
-            setImagePreviews(prevImagePreviews => 
-                [...prevImagePreviews, ...newImagePreviews]);
-
-            setFormData((prev) => ({
-                ...prev,
-                placeAvatar: [...prev.placeAvatar, ...fileArray] // Add files directly
-            }));
-        } else {
-            // Log an error or handle the case where files are not present
-            console.error('No files selected or event is not defined.');
-        }
-    };
-
-
-    useEffect(() => {
-        if (editData) {
-            const newImagePreviews = editData?.placeAvatar?.map(image => {
-                return { url: image.fileUrl };
-            }) || [];
-            setImagePreviews(newImagePreviews);
-        }
+    // Sử dụng useMemo để giữ cho imageUrls không thay đổi trừ khi editData thực sự thay đổi
+    const imageUrls = useMemo(() => {
+        return editData ? editData.placeAvatar.map(img => img.fileUrl) : [];
     }, [editData]);
 
+    // Xử lý việc thay đổi hình ảnh
+    const handleFileChange = useCallback((files) => {
+        // Cập nhật state để bao gồm những file mới
+        setFormData(prev => ({
+            ...prev,
+            placeAvatar: files
+        }));
+    }, []);
+    
 
 
     // ==============================|| LOCATION REGION ||============================== //
@@ -498,7 +470,8 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
         if (editData) {
             setFormData({
                 ...formData,
-                ...editData
+                ...editData, 
+                placeAvatar: editData.placeAvatar || [],
             });
             setSelectedCategoryId(editData.categoryId);
             setSelectedDistrictId(editData.districtId);
@@ -531,10 +504,11 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
         userId: 1,
     });
 
-    const handleChange = (event) => {
+    // Xử lý sự thay đổi trên form và cập nhật formData
+    const handleChange = useCallback((event) => {
         const { name, value } = event.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    }, []);
 
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -556,17 +530,23 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
         event.preventDefault();
 
         const formDataToSend = new FormData();
-        Object.keys(formData).forEach(key => {
-            if (key === 'placeAvatar') {
-                formData[key].forEach(file => {
-                    if (file instanceof File) { // Ensure only File objects are appended
-                        formDataToSend.append(key, file);
-                    }
-                });
-            } else {
+
+        // Chỉ thêm các File hợp lệ vào formDataToSend
+        formData.placeAvatar.forEach(file => {
+            if (file instanceof File) {
+                formDataToSend.append('placeAvatar', file);
+            }
+        });
+    
+        // Thêm các trường dữ liệu khác từ formData vào formDataToSend
+        Object.keys(formData).forEach((key) => {
+            if (key !== 'placeAvatar') {
                 formDataToSend.append(key, formData[key]);
             }
         });
+    
+        // Log formDataToSend để kiểm tra trước khi gửi
+        console.log('Submitting form data:', formDataToSend);
 
         // Log data for debugging
         for (let [key, value] of formDataToSend.entries()) {
@@ -629,7 +609,7 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
                         />
                         <SubCard>
                             <UploadImage
-                                imagePreviews={imagePreviews}
+                                initialImages={imageUrls}
                                 onChange={handleFileChange}
                             />
                         </SubCard>
