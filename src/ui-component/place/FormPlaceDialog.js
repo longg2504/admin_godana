@@ -4,7 +4,7 @@ import {
     TextField, Button, DialogActions,
     Grid, FormControl, InputLabel, Select,
     OutlinedInput, FormHelperText, MenuItem,
-    Snackbar, Alert,
+    Snackbar, Alert, CircularProgress, Backdrop, Stack, Divider
 }
     from '@mui/material';
 
@@ -310,7 +310,7 @@ function SingleSelect({ label, options, onChange, name, error, selectedOption, s
 
 
 // Main dialog component
-const FormPlaceDialog = ({ open, editData, onClose, }) => {
+const FormPlaceDialog = ({ open, editData, onClose }) => {
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -318,6 +318,8 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
     const [selectedCategoryId, setSelectedCategoryId] = useState('');
     const [selectedDistrictId, setSelectedDistrictId] = useState('');
     const [selectedWardId, setSelectedWardId] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
 
     // ==============================|| VALIDATION FIELD ||============================== //
 
@@ -406,7 +408,7 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
             placeAvatar: files
         }));
     }, []);
-    
+
 
 
     // ==============================|| LOCATION REGION ||============================== //
@@ -420,36 +422,6 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
         }).catch(error => console.error("Failed to fetch districts:", error));
     }, []);
 
-    const handleSelectionChange = (name, value) => {
-        if (name === "districtId") {
-            fetchWard(value).then(response => {
-                const wardsData = response.data.results.map(ward => ({
-                    id: ward.ward_id,
-                    title: ward.ward_name
-                }));
-                setWards(wardsData);
-                // After fetching new wards, reset the selectedWardId if it doesn't exist in the new ward list
-                setFormData(prevState => ({
-                    ...prevState,
-                    districtId: value,
-                    wardId: wardsData.find(ward => ward.id === prevState.wardId) ? prevState.wardId : ''
-                }));
-            }).catch(error => {
-                console.error("Failed to fetch wards:", error);
-                setWards([]);
-                setFormData(prevState => ({
-                    ...prevState,
-                    districtId: value,
-                    wardId: ''
-                }));
-            });
-        } else if (name === "wardId") {
-            setFormData(prevState => ({
-                ...prevState,
-                [name]: value
-            }));
-        }
-    };
     useEffect(() => {
         if (selectedDistrictId) {
             fetchWard(selectedDistrictId).then(response => {
@@ -458,11 +430,64 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
                     title: ward.ward_name
                 }));
                 setWards(wardsData);
-            }).catch(error => console.error("Failed to fetch wards:", error));
+                if (!wardsData.some(ward => ward.id === selectedWardId)) {
+                    // Nếu ward hiện tại không còn trong danh sách mới, cập nhật lại state
+                    setSelectedWardId('');
+                }
+            }).catch(error => {
+                console.error("Failed to fetch wards:", error);
+                setWards([]); // Nên reset danh sách wards nếu có lỗi
+            });
         } else {
-            setWards([]); // Clear wards if no district is selected
+            setWards([]);
         }
-    }, [selectedDistrictId]);  // Dependency should be on selectedDistrictId to refetch when it changes
+    }, [selectedDistrictId, selectedWardId]);
+
+
+    const handleSelectionChange = (name, value) => {
+        // Cập nhật giá trị cho districtId hoặc wardId
+        let updatedValues = { [name]: value };
+
+        // Tìm và cập nhật districtName nếu districtId được thay đổi
+        if (name === "districtId") {
+            const selectedDistrict = districts.find(district => district.id === value);
+            if (selectedDistrict) {
+                updatedValues.districtName = selectedDistrict.title;
+                // Khi chọn district mới, cần reset ward
+                setWards([]);
+                updatedValues.wardId = '';
+                updatedValues.wardName = '';
+            }
+
+            fetchWard(value).then(response => {
+                const wardsData = response.data.results.map(ward => ({
+                    id: ward.ward_id,
+                    title: ward.ward_name
+                }));
+                setWards(wardsData);
+            }).catch(error => {
+                console.error("Failed to fetch wards:", error);
+            });
+        }
+
+        // Tìm và cập nhật wardName nếu wardId được thay đổi
+        if (name === "wardId") {
+            const selectedWard = wards.find(ward => ward.id === value);
+            if (selectedWard) {
+                updatedValues.wardName = selectedWard.title;
+            }
+        }
+
+        // Cập nhật formData với giá trị mới
+        setFormData(prevState => ({
+            ...prevState,
+            ...updatedValues
+        }));
+
+        // const errorMessage = validateField(name, value);
+        // setFormErrors(prevErrors => ({ ...prevErrors, [name]: errorMessage }));
+    };
+
 
 
 
@@ -470,7 +495,7 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
         if (editData) {
             setFormData({
                 ...formData,
-                ...editData, 
+                ...editData,
                 placeAvatar: editData.placeAvatar || [],
             });
             setSelectedCategoryId(editData.categoryId);
@@ -528,7 +553,7 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
+        setIsLoading(true);
         const formDataToSend = new FormData();
 
         // Chỉ thêm các File hợp lệ vào formDataToSend
@@ -537,14 +562,14 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
                 formDataToSend.append('placeAvatar', file);
             }
         });
-    
+
         // Thêm các trường dữ liệu khác từ formData vào formDataToSend
         Object.keys(formData).forEach((key) => {
             if (key !== 'placeAvatar') {
                 formDataToSend.append(key, formData[key]);
             }
         });
-    
+
         // Log formDataToSend để kiểm tra trước khi gửi
         console.log('Submitting form data:', formDataToSend);
 
@@ -565,6 +590,8 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
             console.log('Place ID:' + editData.id);
             openSnackbar('Failed to update place. Please try again.', 'error');
             console.log('Form Data:', Array.from(formDataToSend.entries()));
+        } finally {
+            setIsLoading(false);  // Dừng hiển thị trạng thái loading
         }
     };
 
@@ -573,25 +600,65 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
             <DialogTitle variant='h4'>Infomation Place</DialogTitle>
             <DialogContent>
                 <Grid container spacing={2}>
-                    {/* Input fields setup */}
-                    <Grid item xs={12} md={4}>
+
+                    {/* ----- Layout 1 -----*/}
+                    <Grid item xs={12} md={6}>
+                        <Divider textAlign="left" spacing={2}>Image</Divider>
+                        <Stack spacing={1}>
+                            <SubCard>
+                                <UploadImage
+                                    initialImages={imageUrls}
+                                    onChange={handleFileChange}
+                                />
+                            </SubCard>
+                        </Stack>
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                        <Divider textAlign="left">Infomation</Divider>
                         <TextField label="Place Title" name="placeTitle" fullWidth onChange={handleChange} value={formData.placeTitle} margin="normal" />
-                        <TextField label="Content" name="content" fullWidth onChange={handleChange} value={formData.content} margin="normal" multiline />
-                        <TextField label="Longitude" name="longitude" fullWidth onChange={handleChange} value={formData.longitude} margin="normal" />
-                        <TextField label="Latitude" name="latitude" fullWidth onChange={handleChange} value={formData.latitude} margin="normal" />
-                        <SingleSelect label="Category" name="category" options={categories} onChange={(name, value) => handleSelectionChange(name, value)} selectedOption={selectedCategoryId} setFormData={setFormData} />
+                        <TextField label="Content" name="content" fullWidth rows={6} onChange={handleChange} value={formData.content} margin="normal" multiline />
+                    </Grid>
+                </Grid>
+
+                {/* ----- Layout 2 -----*/}
+                <Divider textAlign="left">Contact</Divider>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} md={4}>
+                        <TextField label="Phone" name="phone" fullWidth onChange={handleChange} value={formData.phone} margin="normal" />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                        <TextField label="Email" name="email" fullWidth onChange={handleChange} value={formData.email} margin="normal" />
                     </Grid>
                     <Grid item xs={12} md={4}>
                         <TextField label="Website" name="website" fullWidth onChange={handleChange} value={formData.website} margin="normal" />
-                        <TextField label="Email" name="email" fullWidth onChange={handleChange} value={formData.email} margin="normal" />
-                        <TextField label="Phone" name="phone" fullWidth onChange={handleChange} value={formData.phone} margin="normal" />
-                        <TextField label="Address" name="address" fullWidth onChange={handleChange} value={formData.address} margin="normal" />
-                        <TimeSelect label="Set Time" onTimeChange={handleTimeChange}
-                            initialOpenTime={formData.openTime}
-                            initialCloseTime={formData.closeTime} />
                     </Grid>
-                    <Grid item xs={12} md={4}>
+                </Grid>
+
+                {/* ----- Layout 3 -----*/}
+                <Divider textAlign="left">Category Place</Divider>
+                <Grid container spacing={2} >
+                    <Grid item xs={12} md={6}>
+                        <SingleSelect label="Category" name="category" options={categories} onChange={(name, value) => handleSelectionChange(name, value)} selectedOption={selectedCategoryId} setFormData={setFormData} />
+                    </Grid>
+                </Grid>
+
+                {/* ----- Layout 4 -----*/}
+                <Divider textAlign="left">Location Region</Divider>
+                <Grid container spacing={1}>
+                    <Grid item xs={6}>
+                        <TextField label="Longitude" name="longitude" fullWidth onChange={handleChange} value={formData.longitude} margin="normal" />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <TextField label="Latitude" name="latitude" fullWidth onChange={handleChange} value={formData.latitude} margin="normal" />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField label="Address" name="address" fullWidth onChange={handleChange} value={formData.address} margin="normal" />
+                    </Grid>
+                    <Grid item xs={4}>
                         <ProvinceSelect />
+                    </Grid>
+                    <Grid item xs={4}>
                         <LocationRegionSelect
                             label="District"
                             options={districts}
@@ -600,21 +667,26 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
                             name="district"
                             selectedOption={selectedDistrictId}
                         />
+                    </Grid>
+                    <Grid item xs={4}>
                         <LocationRegionSelect label="Ward"
                             options={wards}
                             onSelectionChange={(name, value) => handleSelectionChange(name, value)}
                             name="ward"
                             selectedOption={selectedWardId}
-                        // disabled={!selectedDistrictId} // Disable nếu district chưa được chọn
+                            disabled={!selectedDistrictId} // Disable nếu district chưa được chọn
                         />
-                        <SubCard>
-                            <UploadImage
-                                initialImages={imageUrls}
-                                onChange={handleFileChange}
-                            />
-                        </SubCard>
                     </Grid>
                 </Grid>
+
+                {/* ----- Layout 5 -----*/}
+                <Divider textAlign="left">Time Open/Close</Divider>
+                <Grid item xs={12}>
+                    <TimeSelect label="Set Time" onTimeChange={handleTimeChange}
+                        initialOpenTime={formData.openTime}
+                        initialCloseTime={formData.closeTime} />
+                </Grid>
+
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>Cancel</Button>
@@ -625,6 +697,12 @@ const FormPlaceDialog = ({ open, editData, onClose, }) => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+            <Backdrop
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={isLoading}
+            >
+                <CircularProgress color="inherit" />
+            </Backdrop>
         </Dialog>
     );
 };
