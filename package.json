@@ -2,7 +2,7 @@
   "name": "react_godana",
   "version": "3.4.2",
   "private": true,
-  "homepage": "https://berrydashboard.io",
+  "homepage": "https://berrydashboard.io/dashboard/report",
   "dependencies": {
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.4",

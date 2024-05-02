@@ -99,10 +99,10 @@ function SingleSelect({ label, options, onChange, setCategories }) {
 function ActionButtons({ id, onEdit, onDelete }) {
   return (
     <strong>
-      <IconButton onClick={() => onEdit(id)}>
+      <IconButton onClick={() => onEdit(id)} style={{ color: 'blue' }}>
         <EditIcon />
       </IconButton>
-      <IconButton onClick={() => onDelete(id)}>
+      <IconButton onClick={() => onDelete(id)} style={{ color: 'red' }}>
         <DeleteIcon />
       </IconButton>
     </strong>
@@ -116,12 +116,12 @@ function ImageField({ value }) {
 }
 
 const columns = [
-  { field: 'id', headerName: 'ID', width: 70 },
+  { field: 'id', headerName: 'ID', width: 30 },
   {
     field: 'image',
     headerName: 'Image',
     renderCell: ImageField,
-    width: 100,
+    width: 70,
     editable: false,
   },
   {
@@ -133,37 +133,38 @@ const columns = [
   {
     field: 'address',
     headerName: 'Address',
-    width: 300,
+    width: 200,
     editable: false,
   },
-  {
-    field: 'longitude',
-    headerName: 'Longitude',
-    width: 100,
-    editable: false,
-  },
-  {
-    field: 'latitude',
-    headerName: 'Latitude',
-    width: 100,
-    editable: false,
-  },
+
   {
     field: 'category',
     headerName: 'Category',
-    width: 150,
+    width: 120,
     editable: false,
     type: 'select',
   },
   {
-    field: 'email',
-    headerName: 'Email',
+    field: 'opentime',
+    headerName: 'Open Time',
     sortable: false,
-    width: 150,
+    width: 120,
+  },
+  {
+    field: 'closetime',
+    headerName: 'Close Time',
+    sortable: false,
+    width: 120,
   },
   {
     field: 'phone',
     headerName: 'Phone',
+    sortable: false,
+    width: 110,
+  },
+  {
+    field: 'email',
+    headerName: 'Email',
     sortable: false,
     width: 150,
   },
@@ -174,22 +175,11 @@ const columns = [
     width: 150,
   },
   {
-    field: 'opentime',
-    headerName: 'Open Time',
-    sortable: false,
-    width: 150,
-  },
-  {
-    field: 'closetime',
-    headerName: 'Close Time',
-    sortable: false,
-    width: 150,
-  },
-  {
     field: 'actions',
     headerName: 'Actions',
     sortable: false,
     width: 100,
+    fixed: true,
     renderCell: (params) => (
       <ActionButtons
         id={params.row.id}
@@ -215,6 +205,7 @@ const handleDelete = (id) => {
 export function DataGridDemo({ onRowClick }) {
   const [places, setPlaces] = useState([]);
 
+
   useEffect(() => {
     const getPlaces = async () => {
       try {
@@ -228,7 +219,7 @@ export function DataGridDemo({ onRowClick }) {
     getPlaces();
   }, []);
 
-  
+
 
   const getAddress = (locationRegion) => {
     const parts = [locationRegion?.address, locationRegion?.districtName, locationRegion?.wardName];
@@ -281,6 +272,8 @@ const PlaceManager = () => {
   const [formData, setFormData] = useState({});
   const [categories, setCategories] = useState([]);
 
+
+
   // ==============================|| CATEGORY API ||============================== //
 
   useEffect(() => {
@@ -306,25 +299,19 @@ const PlaceManager = () => {
       console.log(params.row.id);
 
       setEditData({
-        // ...response.data,
-        id: response.data.id,
-        placeTitle: response.data.placeTitle,
-        content: response.data.content,
-        longitude: response.data.longitude,
-        latitude: response.data.latitude,
-        placeAvatar: response.data.placeAvatar,
-        website: response.data.contact.website,
-        email: response.data.contact.email,
+        ...response.data,
         phone: response.data.contact.phone,
-        address: response.data.locationRegion.address,
+        email: response.data.contact.email,
+        website: response.data.contact.website,
         categoryId: response.data.category.id,  // Lưu ID thay vì title để dễ xử lý
         categoryName: response.data.category.title,
-        openTime: response.data.contact.openTime,
-        closeTime: response.data.contact.closeTime,
         districtId: response.data.locationRegion.districtId,
         districtName: response.data.locationRegion.districtName,
+        address: response.data.locationRegion.address,
         wardId: response.data.locationRegion.wardId,
         wardName: response.data.locationRegion.wardName,
+        openTime: response.data.contact.openTime,
+        closeTime: response.data.contact.closeTime,
       });
 
       console.log('ID:', response.data.id);
@@ -363,25 +350,27 @@ const PlaceManager = () => {
     <MainCard title="PLACE MANAGEMENT">
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-          <SubCard container>
-            <Grid item xs={12} md={5}>
-              <SearchSection style={{ width: '100%' }} />
-              <SingleSelect
-                label="Category"
-                options={categories.map(cat => ({ id: cat.id, title: cat.name }))}
-                onChange={(selectedId) => setFormData({ ...formData, category: selectedId })}
-                setCategories={setCategories}
-              />
+          <SubCard>
+            <Grid container spacing={2}>
+              <Grid item xs={6}><SearchSection style={{ width: '100%', top: '17px', position: 'absolute', }} /></Grid>
+              <Grid item xs={3}>
+                <SingleSelect
+                  label="Category"
+                  options={categories.map(cat => ({ id: cat.id, title: cat.name }))}
+                  onChange={(selectedId) => setFormData({ ...formData, category: selectedId })}
+                  setCategories={setCategories}
+                />
+              </Grid>
             </Grid>
           </SubCard>
         </Grid>
       </Grid>
-      <Divider component="" style={{ padding: (10, 0) }} />
+
+      <Divider spacing={2} />
+
       <SubCard>
         <DataGridDemo onRowClick={handleRowClick} />
-
-        <FormPlaceDialog setEditData= {setEditData} editData={editData} open={isFormDialogOpen} onClose={handleFormDialogClose}/>
-
+        <FormPlaceDialog editData={editData} open={isFormDialogOpen} onClose={handleFormDialogClose} />
       </SubCard>
     </MainCard>
   );

@@ -5,7 +5,7 @@ import React, {
 
 
 import {
-  Grid, TextField, Button, ImageList, ImageListItem,
+  Grid, TextField, Button, ImageList, ImageListItem, Stack, Divider,
   InputLabel, MenuItem, Select, FormControl, IconButton, ImageListItemBar,
   OutlinedInput, Snackbar, Alert, Box, FormHelperText, Dialog, DialogTitle, DialogContent
 } from '@mui/material';
@@ -14,7 +14,6 @@ import CloseIcon from '@mui/icons-material/Close';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
-import { gridSpacing } from 'store/constant';
 import { fetchCategory, createCategory } from 'constant/constURL/URLCategory';
 import { createPlace } from 'constant/constURL/URLPlace';
 import { fetchDistrict, fetchWard } from 'constant/constURL/URLLocationRegion';
@@ -173,12 +172,8 @@ const UploadImage = ({ onChange }) => {
         style={{ display: 'none' }}
         id="raised-button-file"
       />
-      <label htmlFor="raised-button-file">
-        <Button variant="contained" component="span">
-          Upload Images
-        </Button>
-      </label>
-      <ImageList cols={3} gap={8}>
+
+      <ImageList cols={5} gap={8} sx={{ width: 'auto', height: 135 }}>
         {imagePreviews.map((item, index) => (
           <ImageListItem key={index}>
             <Button
@@ -203,6 +198,11 @@ const UploadImage = ({ onChange }) => {
           </ImageListItem>
         ))}
       </ImageList>
+      <label htmlFor="raised-button-file">
+        <Button variant="contained" component="span">
+          Upload Images
+        </Button>
+      </label>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{"Preview"}</DialogTitle>
         <DialogContent>
@@ -651,14 +651,23 @@ const PlaceCreate = () => {
     }
   };
   return (
-
     <MainCard title="Create New Place">
       <form autoComplete="off" noValidate onSubmit={handleSubmit}>
-        <Grid container spacing={gridSpacing}>
-          <Grid item xs={12} md={4}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Divider textAlign="left" spacing={2}>Image</Divider>
+            <Stack spacing={1}>
+              <SubCard>
+                <UploadImage onChange={handleFileChange} />
+              </SubCard>
+            </Stack>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Divider textAlign="left">Infomation</Divider>
             <TextField
-              fullWidth
               label="Place Title"
+              fullWidth
               margin="normal"
               name="placeTitle"
               onChange={handleChange}
@@ -669,8 +678,10 @@ const PlaceCreate = () => {
               helperText={formErrors.placeTitle}
             />
             <TextField
-              fullWidth
               label="Content"
+              fullWidth
+              multiline
+              rows={6}
               margin="normal"
               name="content"
               onChange={handleChange}
@@ -680,81 +691,15 @@ const PlaceCreate = () => {
               error={!!formErrors.content} // Chuyển trạng thái lỗi sang boolean
               helperText={formErrors.content}
             />
-            <TextField
-              fullWidth
-              label="Longitude"
-              margin="normal"
-              name="longitude"
-              onChange={handleChangeNumericInput}
-              required
-              value={formData.longitude}
-              variant="outlined"
-              error={!!formErrors.longitude} // Chuyển trạng thái lỗi sang boolean
-              helperText={formErrors.longitude}
-            />
-            <TextField
-              fullWidth
-              label="Latitude"
-              margin="normal"
-              name="latitude"
-              onChange={handleChangeNumericInput}
-              required
-              value={formData.latitude}
-              variant="outlined"
-              error={!!formErrors.latitude} // Chuyển trạng thái lỗi sang boolean
-              helperText={formErrors.latitude}
-            />
-            <SingleSelect label="Category"
-              open={isDialogOpen}
-              options={categories}
-              onChange={(name, value) => handleSelectionChange(name, value)}
-              name="categoryId"
-              error={formErrors.categoryId}
-              onSave={handleSaveNewCategory} />
-            <TextField
-              fullWidth
-              label="Website"
-              margin="normal"
-              name="website"
-              onChange={handleChange}
-              required
-              value={formData.website}
-              variant="outlined"
-              error={!!formErrors.website} // Chuyển trạng thái lỗi sang boolean
-              helperText={formErrors.website}
-            />
-
           </Grid>
+        </Grid>
 
+        <Divider textAlign="left">Contact</Divider>
+        <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-
             <TextField
-              fullWidth
-              label="Address"
-              margin="normal"
-              name="address"
-              onChange={handleChange}
-              required
-              value={formData.address}
-              variant="outlined"
-              error={!!formErrors.address} // Chuyển trạng thái lỗi sang boolean
-              helperText={formErrors.address}
-            />
-            <TextField
-              fullWidth
-              label="Email"
-              margin="normal"
-              name="email"
-              onChange={handleChange}
-              required
-              value={formData.email}
-              variant="outlined"
-              error={!!formErrors.email} // Chuyển trạng thái lỗi sang boolean
-              helperText={formErrors.email}
-            />
-            <TextField
-              fullWidth
               label="Phone"
+              fullWidth
               margin="normal"
               name="phone"
               onChange={handleChange}
@@ -765,10 +710,85 @@ const PlaceCreate = () => {
               helperText={formErrors.phone}
               type="phone"
             />
-            <TimeSelect label="Set Time" onTimeChange={handleTimeChange} />
           </Grid>
           <Grid item xs={12} md={4}>
+            <TextField
+              label="Email"
+              fullWidth
+              margin="normal"
+              name="email"
+              onChange={handleChange}
+              required
+              value={formData.email}
+              variant="outlined"
+              error={!!formErrors.email} // Chuyển trạng thái lỗi sang boolean
+              helperText={formErrors.email}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              label="Website"
+              fullWidth
+              margin="normal"
+              name="website"
+              onChange={handleChange}
+              required
+              value={formData.website}
+              variant="outlined"
+              error={!!formErrors.website} // Chuyển trạng thái lỗi sang boolean
+              helperText={formErrors.website}
+            />
+          </Grid>
+        </Grid>
+
+        <Divider textAlign="left">Category Place</Divider>
+        <Grid container spacing={2}>
+          <Grid item xs={4}>
+            <SingleSelect label="Category"
+              open={isDialogOpen}
+              options={categories}
+              onChange={(name, value) => handleSelectionChange(name, value)}
+              name="categoryId"
+              error={formErrors.categoryId}
+              onSave={handleSaveNewCategory} />
+          </Grid>
+
+        </Grid>
+
+        <Divider textAlign="left">Location Region</Divider>
+        <Grid container spacing={1}>
+          <Grid item xs={6}>
+            <TextField
+              label="Longitude"
+              fullWidth
+              margin="normal"
+              name="longitude"
+              onChange={handleChangeNumericInput}
+              required
+              value={formData.longitude}
+              variant="outlined"
+              error={!!formErrors.longitude} // Chuyển trạng thái lỗi sang boolean
+              helperText={formErrors.longitude}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label="Latitude"
+              fullWidth
+              margin="normal"
+              name="latitude"
+              onChange={handleChangeNumericInput}
+              required
+              value={formData.latitude}
+              variant="outlined"
+              error={!!formErrors.latitude} // Chuyển trạng thái lỗi sang boolean
+              helperText={formErrors.latitude}
+            />
+          </Grid>
+          <Grid item xs={4}>
             <ProvinceSelect />
+          </Grid>
+          <Grid item xs={4}>
             <LocationRegionSelect
               label="District"
               options={districts}
@@ -777,16 +797,39 @@ const PlaceCreate = () => {
               name="districtId"
               error={formErrors.districtId}
             />
-            <LocationRegionSelect label="Ward" options={wards} onSelectionChange={(name, value) => handleSelectionChange(name, value)} name="wardId"
+          </Grid>
+          <Grid item xs={4}>
+            <LocationRegionSelect
+              label="Ward"
+              options={wards}
+              onSelectionChange={(name, value) => handleSelectionChange(name, value)}
+              name="wardId"
               disabled={!formData.districtId} // Disable nếu district chưa được chọn
               error={formErrors.wardId} />
-            <SubCard>
-              <UploadImage onChange={handleFileChange} />
-            </SubCard>
-
-
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Address"
+              fullWidth
+              margin="normal"
+              name="address"
+              onChange={handleChange}
+              required
+              value={formData.address}
+              variant="outlined"
+              error={!!formErrors.address} // Chuyển trạng thái lỗi sang boolean
+              helperText={formErrors.address}
+            />
           </Grid>
         </Grid>
+
+        <Divider textAlign="left">Time Open/Close</Divider>
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+            <TimeSelect label="Set Time" onTimeChange={handleTimeChange} />
+          </Grid>
+        </Grid>
+
         <Grid item xs={12} sx={{ mt: 2 }}>
           <Button color="primary" variant="contained" type="submit">
             Create

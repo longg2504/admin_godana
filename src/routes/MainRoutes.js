@@ -32,7 +32,7 @@ const MainRoutes = {
       path: 'dashboard',
       children: [
         {
-          path: 'default',
+          path: 'report',
           element: <DashboardDefault />
         }
       ]

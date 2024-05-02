@@ -16,21 +16,7 @@ const utilities = {
   title: 'Management',
   type: 'group',
   children: [
-    {
-      id: 'contact',
-      title: 'Contact',
-      type: 'collapse',
-      icon: icons.IconTypography,
-      children: [
-        {
-          id: 'contact-list',
-          title: 'Contact List',
-          type: 'item',
-          url: '/contact/contact-list',
-          breadcrumbs: false
-        }
-      ]
-    },
+    
     {
       id: 'place',
       title: 'Place',

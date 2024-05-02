@@ -48,7 +48,7 @@ const UploadImage = ({ onChange, initialImages = [] }) => {
             setPreviews(validPreviews);
             onChange(validPreviews.map(p => p.file)); // Chỉ gọi một lần sau khi tất cả hình ảnh đã được tải
         };
-        
+
         loadInitialImages();
     }, [initialImages, onChange]); // Dependency array đảm bảo rằng code chỉ chạy khi `initialImages` hoặc `onChange` thay đổi.
 
@@ -92,12 +92,8 @@ const UploadImage = ({ onChange, initialImages = [] }) => {
                 style={{ display: 'none' }}
                 id="raised-button-file"
             />
-            <label htmlFor="raised-button-file">
-                <Button variant="contained" component="span">
-                    Upload Images
-                </Button>
-            </label>
-            <ImageList cols={3} gap={8}>
+
+            <ImageList cols={3} gap={8} sx={{ width: 'auto', height: 135 }}>
                 {previews.map((item, index) => (
                     <ImageListItem key={index}>
                         <Button
@@ -123,6 +119,11 @@ const UploadImage = ({ onChange, initialImages = [] }) => {
                     </ImageListItem>
                 ))}
             </ImageList>
+            <label htmlFor="raised-button-file">
+                <Button variant="contained" component="span">
+                    Upload Images
+                </Button>
+            </label>
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>Preview</DialogTitle>
                 <DialogContent>
