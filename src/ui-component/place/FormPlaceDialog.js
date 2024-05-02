@@ -153,6 +153,7 @@ function LocationRegionSelect({ label, options, onSelectionChange, name, disable
 
     const handleChange = (event) => {
         const newSelection = event.target.value;
+        console.log(newSelection, "newSelection")
         setCurrentSelection(newSelection); // Update the local state
         if (onSelectionChange) {
             onSelectionChange(name, newSelection); // Pass both the field name and value
