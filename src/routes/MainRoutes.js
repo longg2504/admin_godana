@@ -11,7 +11,7 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')))
 const ContactList = Loadable(lazy(() => import('views/utilities/ContactList')));
 const PlaceManager = Loadable(lazy(() => import('views/utilities/Place/PlaceManager')));
 const PlaceCreate = Loadable(lazy(() => import('views/utilities/Place/PlaceCreate')));
-const PostList = Loadable(lazy(() => import('views/utilities/PostList')));
+const PostList = Loadable(lazy(() => import('views/utilities/Post/PostList')));
 const UserList = Loadable(lazy(() => import('views/utilities/User/UserList')));
 const UserBan = Loadable(lazy(() => import('views/utilities/User/UserBan')));
 

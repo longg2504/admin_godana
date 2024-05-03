@@ -57,18 +57,6 @@ const columns = [
     sortable: false,
     width: 150,
   },
-  // {
-  //   field: 'opentime',
-  //   headerName: 'Open Time',
-  //   sortable: false,
-  //   width: 150,
-  // },
-  // {
-  //   field: 'closetime',
-  //   headerName: 'Close Time',
-  //   sortable: false,
-  //   width: 150,
-  // },
 ];
 
 

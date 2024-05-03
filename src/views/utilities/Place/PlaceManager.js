@@ -22,7 +22,7 @@ import SubCard from 'ui-component/cards/SubCard';
 import SearchSection from 'layout/MainLayout/Header/SearchSection';
 import { fetchPlaces, fetchPlaceById } from 'constant/constURL/URLPlace';
 import { fetchCategory, createCategory } from 'constant/constURL/URLCategory';
-import FormPlaceDialog from 'ui-component/place/FormPlaceDialog';
+import FormPlaceDialog from 'views/utilities/Place/FormPlaceDialog';
 
 
 function SingleSelect({ label, options, onChange, setCategories }) {
@@ -366,16 +366,21 @@ const PlaceManager = () => {
             </Grid>
           </SubCard>
         </Grid>
+        <Grid item xs={12} spacing={1}>
+          <Divider/>
+        </Grid>
+        <Grid item xs={12}>
+          <SubCard>
+            <DataGridDemo onRowClick={handleRowClick} />
+            <FormPlaceDialog editData={editData} open={isFormDialogOpen} onClose={handleFormDialogClose} />
+          </SubCard>
+        </Grid>
+
       </Grid>
 
-      <Divider spacing={2} />
 
-      <SubCard>
-        <DataGridDemo onRowClick={handleRowClick} />
 
-        <FormPlaceDialog editData={editData} open={isFormDialogOpen} onClose={handleFormDialogClose} />
 
-      </SubCard>
     </MainCard>
   );
 };
