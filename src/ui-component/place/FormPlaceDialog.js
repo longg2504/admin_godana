@@ -142,7 +142,7 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '' 
 
 // ==============================|| LOCATION REGION SELECT ||============================== //
 
-function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, selectedOption }) {
+function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, selectedOption, setWards }) {
     const [currentSelection, setCurrentSelection] = useState(selectedOption);
 
     useEffect(() => {
@@ -154,6 +154,18 @@ function LocationRegionSelect({ label, options, onSelectionChange, name, disable
     const handleChange = (event) => {
         const newSelection = event.target.value;
         console.log(newSelection, "newSelection")
+        if(label== 'District'){
+            fetchWard(newSelection).then(response => {
+                
+                const wardsData = response.data.results.map(ward => ({
+                    id: ward.ward_id,
+                    title: ward.ward_name
+                }));
+                setWards(wardsData);
+            
+    })
+        }
+        
         setCurrentSelection(newSelection); // Update the local state
         if (onSelectionChange) {
             onSelectionChange(name, newSelection); // Pass both the field name and value
@@ -426,8 +438,10 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
     }, []);
 
     useEffect(() => {
+        console.log(selectedDistrictId);
         if (selectedDistrictId) {
             fetchWard(selectedDistrictId).then(response => {
+                
                 const wardsData = response.data.results.map(ward => ({
                     id: ward.ward_id,
                     title: ward.ward_name
@@ -671,6 +685,8 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
                             disabled={false}
                             name="district"
                             selectedOption={selectedDistrictId}
+                            setWards={setWards}
+                            setSelectedWardId={setSelectedWardId}
                         />
                     </Grid>
                     <Grid item xs={4}>
