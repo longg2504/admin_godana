@@ -33,7 +33,6 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
-import User1 from 'assets/images/users/user-round.svg';
 
 // assets
 import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons-react';
@@ -51,21 +50,24 @@ const ProfileSection = () => {
   const [notification, setNotification] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
-  /**
-   * anchorRef is used on different componets and specifying one type leads to other components throwing an error
-   * */
-  const anchorRef = useRef(null);
-  const handleLogout = async () => {
-    // If using Redux, dispatch a logout action
-    dispatch({ type: 'LOGOUT' });
 
-    // If using local storage or cookies for storing the token
+  const anchorRef = useRef(null);
+
+  let username = 'ADMIN'; // Default username
+  let avatar = 'https://res.cloudinary.com/dmlftry2o/image/upload/f_auto,q_auto/kidxz3twmwk3afojlgys'; // Default avatar URL
+  try {
+    username = localStorage.getItem('username') || 'ADMIN';
+    avatar = localStorage.getItem('userAvatar') || 'https://res.cloudinary.com/dmlftry2o/image/upload/f_auto,q_auto/kidxz3twmwk3afojlgys';
+    console.log(username, "----", avatar);
+  } catch (error) {
+    console.error("Error accessing localStorage:", error);
+  }
+
+  const handleLogout = async () => {
+    dispatch({ type: 'LOGOUT' });
     localStorage.removeItem('token');
     sessionStorage.removeItem('userInfo');
-
-    // Redirect to the login page or home page
-    navigate('/admin/login'); // Adjust the route as needed for your application
-    console.log('User logged out');
+    navigate('/admin/login');
   };
 
   const handleClose = (event) => {
@@ -122,7 +124,7 @@ const ProfileSection = () => {
         }}
         icon={
           <Avatar
-            src={User1}
+            src={avatar}
             sx={{
               ...theme.typography.mediumAvatar,
               margin: '8px 0 8px 8px !important',
@@ -170,7 +172,7 @@ const ProfileSection = () => {
                       <Stack direction="row" spacing={0.5} alignItems="center">
                         <Typography variant="h4">Good Morning,</Typography>
                         <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                          Johne Doe
+                          {username}
                         </Typography>
                       </Stack>
                       <Typography variant="subtitle2">Project Admin</Typography>

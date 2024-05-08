@@ -74,7 +74,7 @@ const utilities = {
           type: 'item',
           url: '/user/user-ban',
           breadcrumbs: false
-        }
+        },
       ]
     }
   ]

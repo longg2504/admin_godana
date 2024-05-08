@@ -10,8 +10,8 @@ import { IconSearch, IconX } from '@tabler/icons-react';
 const PopperStyle = styled(Popper)(({ theme }) => ({
   zIndex: 1100,
   width: '99%',
-  top: '-55px !important',
-  padding: '0 12px',
+  top: '-60px !important',
+  padding: '0 18px',
   [theme.breakpoints.down('sm')]: {
     padding: '0 10px'
   }

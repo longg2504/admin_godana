@@ -26,13 +26,8 @@ const Login = () => {
                       <img
                         src="https://res.cloudinary.com/dmlftry2o/image/upload/f_auto,q_auto/kidxz3twmwk3afojlgys"
                         alt="Logo"
-                        width="150"
-                        style={{
-                          position: 'absolute',
-                          top: '200px',
-                          right: '860px',
-                          borderRadius: '11px'
-                        }} />
+                        width="120"
+                        />
                     </Link>
                   </Grid>
 

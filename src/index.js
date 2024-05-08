@@ -20,7 +20,7 @@ const root = createRoot(container); // createRoot(container!) if you use TypeScr
 root.render(
   <Provider store={store}>
     <BrowserRouter basename={config.basename}>
-      <App />
+        <App />
     </BrowserRouter>
   </Provider>
 );
