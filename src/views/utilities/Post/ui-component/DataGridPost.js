@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
     Box,
     Avatar,
+    // CircularProgress,
+    // Alert,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-
 
 function ImageField({ value }) {
     return (
@@ -20,46 +21,23 @@ const columns = [
     { field: 'username', headerName: 'Username', width: 150, sortable: false },
 ];
 
-const DataGridPost = () => {
-    const [posts, setPosts] = useState([]);
-    const [error, setError] = useState(null);
+const DataGridPost = ({options}) => {
 
-    useEffect(() => {
-        const fetchPosts = async () => {
-            try {
-                // Fetch data from the API
-                const response = await findAllPost();
+    const rows = options && options.length > 0
+        ? options.map(post => ({
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            category: post.category.title,
+            username: post.user.username,
+            image: post.postAvatar?.fileUrl || 'defaultImageUrl',
+        })) : [];
 
-                // Verify the data structure
-                if (Array.isArray(response.data)) {
-                    setPosts(response.data);
-                } else {
-                    console.error("Unexpected data format:", response.data);
-                    setError("Unexpected data format received from the API.");
-                }
-            } catch (err) {
-                // Handle API errors
-                console.error("Failed to fetch posts:", err);
-                setError("Failed to fetch posts. Please try again later.");
-            }
-        };
-
-        // Call the function to fetch posts
-        fetchPosts();
-    }, []);
-
-    const rows = posts.map(post => ({
-        id: post.id,
-        title: post.title,
-        content: post.content,
-        category: post.category.title,
-        username: post.user.username,
-        image: post.postAvatar?.[0]?.fileUrl || 'defaultImageUrl',
-    }));
+    // if (loading) return <CircularProgress />;
+    // if (error) return <Alert severity="error">{error}</Alert>;
 
     return (
         <>
-            {error && <div style={{ color: 'red' }}>{error}</div>}
             <Box sx={{ height: 500, width: '100%' }}>
                 <DataGrid
                     rows={rows}

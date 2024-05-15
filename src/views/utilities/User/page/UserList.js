@@ -12,14 +12,15 @@ import {
   DialogContentText,
   DialogActions,
   Snackbar,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import DoDisturbOnIcon from '@mui/icons-material/DoDisturbOn';
 
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { getAllUsers, banUser } from 'constant/constURL/URLUser';
+import { getAllUsers, banUser, getAllUsersBySearch } from 'constant/constURL/URLUser';
 import SubCard from 'ui-component/cards/SubCard';
 import SearchSection from 'layout/MainLayout/Header/SearchSection';
 
@@ -86,34 +87,51 @@ const columns = (handleBan) => [
 
 function DataGridDemo({ searchTerm, handleBan, refreshTrigger }) {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchUsers = async () => {
+      setLoading(true);
+      setError('');
       try {
-        const { data } = await getAllUsers(searchTerm);
-        setUsers(data.content || []);
+        let res;
+        if (searchTerm) {
+          res = await getAllUsersBySearch(searchTerm);
+        } else {
+          res = await getAllUsers();
+        }
+        setUsers(res.data.content);
       } catch (error) {
         console.error("Failed to fetch users:", error);
+        setError('Failed to fetch users');
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchUsers();
   }, [searchTerm, refreshTrigger]);
 
-  const rows = users.map(user => ({
-    id: user.id,
-    avatar: user.avatar?.fileUrl || 'defaultImageUrl',
-    fullName: user.fullName,
-    email: user.email,
-    username: user.username,
-    role: user.role.code,
-    status: user.status,
-  }));
+  const rows = users && users.length > 0
+    ? users.map((user) => ({
+      id: user.id,
+      avatar: user.avatar?.fileUrl || 'defaultImageUrl',
+      fullName: user.fullName,
+      email: user.email,
+      username: user.username,
+      role: user.role.code,
+      status: user.status,
+    })) : [];
+
+  if (loading) return <CircularProgress />;
+  if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
     <Box sx={{ height: 500, width: '100%' }}>
       <DataGrid
         rows={rows}
-        columns={columns(handleBan)} // Pass handleBan function to columns
+        columns={columns(handleBan)}
         pageSize={10}
         checkboxSelection
         disableRowSelectionOnClick
@@ -151,10 +169,10 @@ function UserList() {
     }
   };
 
-  const handleSearch = (newSearchTerm) => {
-    setSearchTerm(newSearchTerm);
+  const handleSearch = (value) => {
+    console.log(value);
+    setSearchTerm(value);
   };
-
   return (
     <MainCard title="USER LIST">
       <Grid container spacing={gridSpacing}>

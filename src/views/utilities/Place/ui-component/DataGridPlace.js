@@ -3,24 +3,33 @@ import {
     Box,
     Avatar,
     IconButton,
+    Typography,
 } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
-import EditIcon from '@mui/icons-material/Edit';
+import { DataGrid, GridOverlay } from '@mui/x-data-grid';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-
-function ActionButtons({ id, onEdit, onDelete }) {
+function NoRowsOverlay() {
     return (
-      <strong>
-        <IconButton onClick={() => onEdit(id)} style={{ color: 'blue' }}>
-          <EditIcon />
-        </IconButton>
-        <IconButton onClick={() => onDelete(id)} style={{ color: 'red' }}>
-          <DeleteIcon />
-        </IconButton>
-      </strong>
+        <GridOverlay>
+            <div style={{ textAlign: 'center' }}>
+                <Typography variant="subtitle1" gutterBottom>
+                    Không tìm thấy dữ liệu (No data found)
+                </Typography>
+            </div>
+        </GridOverlay>
     );
-  }
+}
+
+function ActionButtons({ id, onDelete }) {
+    return (
+        <strong>
+            
+            <IconButton onClick={() => onDelete(id)} style={{ color: 'red' }}>
+                <DeleteIcon />
+            </IconButton>
+        </strong>
+    );
+}
 
 function ImageField({ value }) {
     return (
@@ -96,18 +105,12 @@ const columns = [
         renderCell: (params) => (
             <ActionButtons
                 id={params.row.id}
-                onEdit={handleEdit}
                 onDelete={handleDelete}
             />
         ),
         align: 'center'
     }
 ];
-
-const handleEdit = (id) => {
-    console.log("Editing:", id);
-    // Mở form chỉnh sửa hoặc thực hiện hành động khác
-};
 
 const handleDelete = (id) => {
     console.log("Deleting:", id);
@@ -121,26 +124,27 @@ const DataGridPlace = ({ onRowClick, options }) => {
     };
 
     // Map places to rows here
-    const rows = options.map((place) => ({
-        id: place.id,
-        image: place.placeAvatar?.[0]?.fileUrl || 'defaultImageUrl',
-        title: place.placeTitle,
-        address: getAddress(place.locationRegion),
-        longitude: place.longitude,
-        latitude: place.latitude,
-        category: place.category.title,
-        email: place.contact.email,
-        phone: place.contact.phone,
-        website: place.contact.website,
-        opentime: place.contact.openTime,
-        closetime: place.contact.closeTime,
-
-    }));
+    const rows = options && options.length > 0
+        ? options.map((place) => ({
+            id: place.id,
+            image: place.placeAvatar?.[0]?.fileUrl || 'defaultImageUrl',
+            title: place.placeTitle,
+            address: getAddress(place.locationRegion),
+            longitude: place.longitude,
+            latitude: place.latitude,
+            category: place.category.title,
+            email: place.contact.email,
+            phone: place.contact.phone,
+            website: place.contact.website,
+            opentime: place.contact.openTime,
+            closetime: place.contact.closeTime,
+        }))
+        : [];
 
     return (
         <Box sx={{ height: 500, width: '100%' }}>
             <DataGrid
-                rows={rows}
+                rows={rows ? rows : "Không có dữ liệu"}
                 columns={columns}
                 initialState={{
                     pagination: {
@@ -153,6 +157,7 @@ const DataGridPlace = ({ onRowClick, options }) => {
                 checkboxSelection
                 disableRowSelectionOnClick
                 onRowClick={onRowClick}
+                noRowsOverlayComponent={NoRowsOverlay}
             />
         </Box>
     );

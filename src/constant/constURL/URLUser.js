@@ -2,9 +2,13 @@ import axios from 'axios';
 
 const API = axios.create({ baseURL: 'http://localhost:9000/api' });
 
-export const getAllUsers = (search) => {
+export const getAllUsers = () => {
+    return API.get(`/user`);
+  };
+export const getAllUsersBySearch = (search) => {
     return API.get(`/user?search=${search}`);
   };
+
 // Fetch banned users list with optional search and pagination
 export const getAllBannedUsers = () => {
   return API.get(`/user/list-ban`);

@@ -14,12 +14,11 @@ import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 import SubCard from 'ui-component/cards/SubCard';
 import SearchSection from 'layout/MainLayout/Header/SearchSection';
-import { fetchPlaces, fetchPlaceById } from 'constant/constURL/URLPlace';
+import { getAllPlace, getPlaceListByCategoryAndSearch, fetchPlaceById } from 'constant/constURL/URLPlace';
 import { fetchCategory, createCategory } from 'constant/constURL/URLCategory';
 import FormPlaceDialog from 'views/utilities/Place/page/FormPlaceDialog';
 import DataGridPlace from '../ui-component/DataGridPlace';
 import FormDialog from 'ui-component/FormDialog';
-
 
 function SingleSelect({ label, options, onChange, name, onSave, open }) {
   const [selectedOption, setSelectedOption] = useState('');
@@ -32,7 +31,10 @@ function SingleSelect({ label, options, onChange, name, onSave, open }) {
     if (value === 'add_new') {
       // Open the dialog
       setIsDialogOpen(true);
-    } else {
+    } else if (value === 'none') { 
+      setSelectedOption(''); // Reset the local state
+      onChange(name, '');
+    }else {
       // Notify parent component about the change
       onChange(name, value);
     }
@@ -53,6 +55,7 @@ function SingleSelect({ label, options, onChange, name, onSave, open }) {
         onChange={handleChange}
         input={<OutlinedInput label={label} />}
       >
+        <MenuItem value="none">None (Clear Selection)</MenuItem>
         {options.map((option) => (
           <MenuItem key={option.id} value={option.id}>{option.title}</MenuItem>
         ))}
@@ -74,23 +77,28 @@ const PlaceManager = () => {
 
   const [editData, setEditData] = useState(null);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
-  // const [formData, setFormData] = useState({});
-
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
 
   // ==============================|| Place API ||============================== //
   const [places, setPlaces] = useState([]);
   useEffect(() => {
-    const getPlaces = async () => {
+    const fetchPlaces = async () => {
       try {
-        const { data } = await fetchPlaces();
-        setPlaces(data.content);
+        let res;
+        if (selectedCategoryId || searchTerm) {
+          res = await getPlaceListByCategoryAndSearch(selectedCategoryId, searchTerm);
+        } else {
+          res = await getAllPlace();
+        }
+        setPlaces(res.data.content);
       } catch (error) {
         console.error("Failed to fetch places:", error);
       }
     };
 
-    getPlaces();
-  }, []);
+    fetchPlaces();
+  }, [selectedCategoryId, searchTerm]);
 
   // ==============================|| CATEGORY API ||============================== //
   const [categories, setCategories] = useState([]);
@@ -127,7 +135,7 @@ const PlaceManager = () => {
   // const handleCategoryChange = (event) => {
   //   setSelectedCategory(event.target.value);
   // };
-  
+
   // ==============================|| CATEGORY API ||============================== //
 
 
@@ -158,28 +166,6 @@ const PlaceManager = () => {
         closeTime: response.data.contact.closeTime,
         placeAvatar: response.data.placeAvatar
       });
-      console.log('ID:', response.data.id);
-      console.log('placeTitle:', response.data.placeTitle);
-      console.log('content:', response.data.content);
-      console.log('longitude:', response.data.longitude);
-      console.log('latitude:', response.data.latitude);
-      console.log('placeAvatar:', response.data.placeAvatar.map(avatar => ({
-        file: null,
-        url: avatar.fileUrl
-      })));
-      console.log('website:', response.data.contact.website);
-      console.log('email:', response.data.contact.email);
-      console.log('phone:', response.data.contact.phone);
-      console.log('address:', response.data.locationRegion.address);
-      console.log('categoryId:', response.data.category.id);
-      console.log('categoryName:', response.data.category.title);
-      console.log('openTime:', response.data.contact.openTime);
-      console.log('closeTime:', response.data.contact.closeTime);
-      console.log('districtId:', response.data.locationRegion.districtId);
-      console.log('districtName:', response.data.locationRegion.districtName);
-      console.log('wardId:', response.data.locationRegion.wardId);
-      console.log('wardName:', response.data.locationRegion.wardName);
-      console.log("END FORM.");
       setIsFormDialogOpen(true);
     } catch (error) {
       console.log(params.row.id);
@@ -192,7 +178,15 @@ const PlaceManager = () => {
     console.log("Form status: " + isFormDialogOpen);
   };
 
+  const handleSearch = (value) => {
+    console.log(value);
+    setSearchTerm(value);
+  };
 
+  const handleCategoryChange = (name, value) => {
+    console.log(value);
+    setSelectedCategoryId(value);
+  };
 
   return (
     <MainCard title="PLACE MANAGEMENT">
@@ -200,12 +194,12 @@ const PlaceManager = () => {
         <Grid item xs={12}>
           <SubCard>
             <Grid container spacing={2}>
-              <Grid item xs={6}><SearchSection style={{ width: '100%', top: '17px', position: 'absolute', }} /></Grid>
+              <Grid item xs={5}><SearchSection onSearch={handleSearch} /></Grid>
               <Grid item xs={3}>
                 <SingleSelect label="Category"
                   open={isDialogOpen}
                   options={categories}
-                  onChange={(name, value) => setEditData({ ...editData, categoryId: value })}
+                  onChange={handleCategoryChange}
                   name="categoryId"
                   onSave={handleSaveNewCategory} />
               </Grid>

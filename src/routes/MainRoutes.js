@@ -12,8 +12,8 @@ const ContactList = Loadable(lazy(() => import('views/utilities/ContactList')));
 const PlaceManager = Loadable(lazy(() => import('views/utilities/Place/page/PlaceManager')));
 const PlaceCreate = Loadable(lazy(() => import('views/utilities/Place/page/PlaceCreate')));
 const PostList = Loadable(lazy(() => import('views/utilities/Post/page/PostList')));
-const UserList = Loadable(lazy(() => import('views/utilities/User/UserList')));
-const UserBan = Loadable(lazy(() => import('views/utilities/User/UserBan')));
+const UserList = Loadable(lazy(() => import('views/utilities/User/page/UserList')));
+const UserBan = Loadable(lazy(() => import('views/utilities/User/page/UserBan')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
