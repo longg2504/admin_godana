@@ -9,14 +9,11 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')))
 
 // utilities routing
 const ContactList = Loadable(lazy(() => import('views/utilities/ContactList')));
-const PlaceManager = Loadable(lazy(() => import('views/utilities/Place/PlaceManager')));
-const PlaceCreate = Loadable(lazy(() => import('views/utilities/Place/PlaceCreate')));
-const PostList = Loadable(lazy(() => import('views/utilities/Post/PostList')));
-const UserList = Loadable(lazy(() => import('views/utilities/User/UserList')));
-const UserBan = Loadable(lazy(() => import('views/utilities/User/UserBan')));
-
-// sample page routing
-const SamplePage = Loadable(lazy(() => import('views/sample-page')));
+const PlaceManager = Loadable(lazy(() => import('views/utilities/Place/page/PlaceManager')));
+const PlaceCreate = Loadable(lazy(() => import('views/utilities/Place/page/PlaceCreate')));
+const PostList = Loadable(lazy(() => import('views/utilities/Post/page/PostList')));
+const UserList = Loadable(lazy(() => import('views/utilities/User/page/UserList')));
+const UserBan = Loadable(lazy(() => import('views/utilities/User/page/UserBan')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -69,7 +66,7 @@ const MainRoutes = {
         {
           path: 'user-ban',
           element: <UserBan />
-        }
+        },
       ]
     },
     {
@@ -81,10 +78,6 @@ const MainRoutes = {
         }
       ]
     },
-    {
-      path: 'sample-page',
-      element: <SamplePage />
-    }
   ]
 };
 

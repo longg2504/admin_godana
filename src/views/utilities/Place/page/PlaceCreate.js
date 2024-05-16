@@ -2,12 +2,14 @@ import React, {
   useEffect,
   useState
 } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 
 import {
   Grid, TextField, Button, ImageList, ImageListItem, Stack, Divider,
   InputLabel, MenuItem, Select, FormControl, IconButton, ImageListItemBar,
-  OutlinedInput, Snackbar, Alert, Box, FormHelperText, Dialog, DialogTitle, DialogContent
+  OutlinedInput, Snackbar, Alert, Box, FormHelperText, Dialog, DialogTitle, DialogContent,
+  Backdrop,
+  CircularProgress
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 // import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -42,8 +44,6 @@ function SingleSelect({ label, options, onChange, name, error, onSave, open }) {
     setIsDialogOpen(false);
     // Optionally reset the selected option or handle other cleanup
   };
-
-
 
   return (
     <FormControl fullWidth margin="normal" error={!!error}>
@@ -359,6 +359,9 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '' 
 // ==============================|| CREATE PLACE ||============================== //
 
 const PlaceCreate = () => {
+  const storedUserId = localStorage.getItem('id');
+  const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
   // ==============================|| FORM ERRORS ||============================== //
 
   const [formErrors, setFormErrors] = useState({});
@@ -510,7 +513,7 @@ const PlaceCreate = () => {
     website: '',
     openTime: '',
     closeTime: '',
-    userId: 1,
+    userId: storedUserId,
   });
 
   const handleChange = (e) => {
@@ -544,11 +547,7 @@ const PlaceCreate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // if (!validateField()) {
-    //   console.error("Validation failed");
-    //   return;
-    // }
+    setIsLoading(true);
 
     const submitData = new FormData();
     Object.keys(formData).forEach(key => {
@@ -571,39 +570,22 @@ const PlaceCreate = () => {
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
       console.log('Place created:', response.data);
-
-      setFormData({
-        placeTitle: '',
-        content: '',
-        longitude: '',
-        latitude: '',
-        placeAvatar: [],
-        categoryId: '',
-        provinceId: '48',
-        provinceName: 'Thành Phố Đà Nẵng',
-        districtId: '',
-        districtName: '',
-        wardId: '',
-        wardName: '',
-        address: '',
-        email: '',
-        phone: '',
-        website: '',
-        openTime: '',
-        closeTime: '',
-        userId: 1,
-      });
-      // Đặt lại preview ảnh
-      document.getElementById("raised-button-file").value = "";
+      
+      
     } catch (error) {
-      setSnackbarMessage('Failed to create place.');
+      if (error.response && error.response.status === 400) {
+        setSnackbarMessage('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại các trường.');
+      } else {
+        setSnackbarMessage('Đã xảy ra lỗi. Vui lòng thử lại sau.');
+      }
       setSnackbarSeverity('error');
-      setOpenSnackbar(true);
       console.error('Failed to create place:', error);
       console.log('Data:', submitData);
+    } finally {
+      setIsLoading(false);  // Dừng hiển thị trạng thái loading
+      setOpenSnackbar(true); 
+      navigate("/place/place-list");
     }
-
-
   };
 
   const handleCloseSnackbar = (event, reason) => {
@@ -846,7 +828,12 @@ const PlaceCreate = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={isLoading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </MainCard>
   );
 };

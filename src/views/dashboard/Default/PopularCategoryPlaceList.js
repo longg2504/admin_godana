@@ -13,7 +13,6 @@ import { gridSpacing } from 'store/constant';
 
 // assets
 import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
-import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
 import KeyboardArrowUpOutlinedIcon from '@mui/icons-material/KeyboardArrowUpOutlined';
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
 
@@ -23,10 +22,6 @@ const PopularCategoryPlaceList = ({ isLoading }) => {
   const theme = useTheme();
 
   const [anchorEl, setAnchorEl] = useState(null);
-
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -43,19 +38,10 @@ const PopularCategoryPlaceList = ({ isLoading }) => {
               <Grid item xs={12}>
                 <Grid container alignContent="center" justifyContent="space-between">
                   <Grid item>
-                    <Typography variant="h4">Popular Stocks</Typography>
+                    <Typography variant="h4">Popular Category</Typography>
                   </Grid>
                   <Grid item>
-                    <MoreHorizOutlinedIcon
-                      fontSize="small"
-                      sx={{
-                        color: theme.palette.primary[200],
-                        cursor: 'pointer'
-                      }}
-                      aria-controls="menu-popular-card"
-                      aria-haspopup="true"
-                      onClick={handleClick}
-                    />
+                    
                     <Menu
                       id="menu-popular-card"
                       anchorEl={anchorEl}

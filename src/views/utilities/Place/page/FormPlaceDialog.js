@@ -13,7 +13,7 @@ import FormDialog from 'ui-component/FormDialog'
 import { fetchUpdatePlaceById } from 'constant/constURL/URLPlace';
 import { fetchCategory, createCategory } from 'constant/constURL/URLCategory';
 import { fetchDistrict, fetchWard } from 'constant/constURL/URLLocationRegion';
-import UploadImage from 'views/utilities/Place/UploadImage';
+import UploadImage from '../ui-component/UploadImage';
 
 const createTimeOptions = (start, end, step) => {
     const options = [];
@@ -142,7 +142,7 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '' 
 
 // ==============================|| LOCATION REGION SELECT ||============================== //
 
-function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, selectedOption, setWards }) {
+function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, selectedOption }) {
     const [currentSelection, setCurrentSelection] = useState(selectedOption);
 
     useEffect(() => {
@@ -153,19 +153,6 @@ function LocationRegionSelect({ label, options, onSelectionChange, name, disable
 
     const handleChange = (event) => {
         const newSelection = event.target.value;
-        console.log(newSelection, "newSelection")
-        if(label== 'District'){
-            fetchWard(newSelection).then(response => {
-                
-                const wardsData = response.data.results.map(ward => ({
-                    id: ward.ward_id,
-                    title: ward.ward_name
-                }));
-                setWards(wardsData);
-            
-    })
-        }
-        
         setCurrentSelection(newSelection); // Update the local state
         if (onSelectionChange) {
             onSelectionChange(name, newSelection); // Pass both the field name and value
@@ -323,7 +310,6 @@ function SingleSelect({ label, options, onChange, name, error, selectedOption, s
 
 
 // Main dialog component
-
 const FormPlaceDialog = ({ open, editData, onClose }) => {
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
@@ -409,7 +395,6 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
 
     // ==============================|| UPLOAD IMAGE ||============================== //
 
-
     // Sử dụng useMemo để giữ cho imageUrls không thay đổi trừ khi editData thực sự thay đổi
     const imageUrls = useMemo(() => {
         return editData ? editData.placeAvatar.map(img => img.fileUrl) : [];
@@ -438,10 +423,8 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
     }, []);
 
     useEffect(() => {
-        console.log(selectedDistrictId);
         if (selectedDistrictId) {
             fetchWard(selectedDistrictId).then(response => {
-                
                 const wardsData = response.data.results.map(ward => ({
                     id: ward.ward_id,
                     title: ward.ward_name
@@ -506,6 +489,8 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
     };
 
 
+
+
     useEffect(() => {
         if (editData) {
             setFormData({
@@ -544,7 +529,6 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
         userId: 1,
     });
 
-
     // Xử lý sự thay đổi trên form và cập nhật formData
     const handleChange = useCallback((event) => {
         const { name, value } = event.target;
@@ -569,7 +553,6 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
         setIsLoading(true);
         const formDataToSend = new FormData();
 
@@ -606,11 +589,9 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
             console.error('Failed to update place:', error);
             console.log('Place ID:' + editData.id);
             openSnackbar('Failed to update place. Please try again.', 'error');
-
             console.log('Form Data:', Array.from(formDataToSend.entries()));
         } finally {
             setIsLoading(false);  // Dừng hiển thị trạng thái loading
-
         }
     };
 
@@ -685,8 +666,6 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
                             disabled={false}
                             name="districtId"
                             selectedOption={selectedDistrictId}
-                            setWards={setWards}
-                            setSelectedWardId={setSelectedWardId}
                         />
                     </Grid>
                     <Grid item xs={4}>
