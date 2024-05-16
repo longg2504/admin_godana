@@ -167,7 +167,7 @@ const EarningCard = ({ isLoading }) => {
                     color: theme.palette.secondary[200]
                   }}
                 >
-                  Total Earning
+                  Total Place
                 </Typography>
               </Grid>
             </Grid>

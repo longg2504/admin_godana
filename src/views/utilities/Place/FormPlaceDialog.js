@@ -683,7 +683,7 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
                             options={districts}
                             onSelectionChange={(name, value) => handleSelectionChange(name, value)}
                             disabled={false}
-                            name="district"
+                            name="districtId"
                             selectedOption={selectedDistrictId}
                             setWards={setWards}
                             setSelectedWardId={setSelectedWardId}
@@ -693,7 +693,7 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
                         <LocationRegionSelect label="Ward"
                             options={wards}
                             onSelectionChange={(name, value) => handleSelectionChange(name, value)}
-                            name="ward"
+                            name="wardId"
                             selectedOption={selectedWardId}
                             disabled={!selectedDistrictId} // Disable nếu district chưa được chọn
                         />

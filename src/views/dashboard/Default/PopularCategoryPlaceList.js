@@ -19,7 +19,7 @@ import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDown
 
 // ==============================|| DASHBOARD DEFAULT - POPULAR CARD ||============================== //
 
-const LocationSearchs = ({ isLoading }) => {
+const PopularCategoryPlaceList = ({ isLoading }) => {
   const theme = useTheme();
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -302,8 +302,8 @@ const LocationSearchs = ({ isLoading }) => {
   );
 };
 
-PopularCard.propTypes = {
+PopularCategoryPlaceList.propTypes = {
   isLoading: PropTypes.bool
 };
 
-export default LocationSearchs;
+export default PopularCategoryPlaceList;
