@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { FormControl, InputLabel, MenuItem, OutlinedInput, Select } from "@mui/material";
 
-const LocationRegionSelect = ({ label, options, onSelectionChange, name, disabled = false, selectedOption }) => {
+const LocationRegionSelect = ({ label, options, onSelectionChange, name, disabled = false, selectedOption, reset }) => {
     const [currentSelection, setCurrentSelection] = useState(selectedOption);
+
+    useEffect(() => {
+        if (reset) {
+            setCurrentSelection(''); // Reset the selected option
+        }
+    }, [reset]);
 
     useEffect(() => {
         if (selectedOption) {

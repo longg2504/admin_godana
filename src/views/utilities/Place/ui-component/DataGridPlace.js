@@ -97,6 +97,19 @@ const columns = [
         width: 150,
     },
     {
+        field: 'rating',
+        headerName: 'Rating',
+        sortable: false,
+        width: 70,
+    },
+    {
+        field: 'numberrating',
+        headerName: 'Number Rating',
+        sortable: false,
+        width: 150,
+    },
+
+    {
         field: 'actions',
         headerName: 'Actions',
         sortable: false,
@@ -116,6 +129,7 @@ const handleDelete = (id) => {
     console.log("Deleting:", id);
     // Hiển thị hộp thoại xác nhận xóa hoặc thực hiện hành động khác
 };
+
 const DataGridPlace = ({ onRowClick, options }) => {
 
     const getAddress = (locationRegion) => {
@@ -138,6 +152,8 @@ const DataGridPlace = ({ onRowClick, options }) => {
             website: place.contact.website,
             opentime: place.contact.openTime,
             closetime: place.contact.closeTime,
+            rating: place.rating,
+            numberrating: place.numberrating || 0,
         }))
         : [];
 

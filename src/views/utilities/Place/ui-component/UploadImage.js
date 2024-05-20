@@ -2,14 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Box, ImageList, ImageListItem, ImageListItemBar, IconButton, Button, Snackbar, Alert, Dialog, DialogTitle, DialogContent } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
-const UploadImage = ({ onChange, initialImages = [] }) => {
+const UploadImage = ({ onChange, initialImages = [], reset, onResetDone }) => {
     const [open, setOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState('');
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: ''
     });
+
     const [previews, setPreviews] = useState([]);
+
+    useEffect(() => {
+        if (reset) {
+            setPreviews([]); // Reset the previews
+            setSelectedImage(''); // Reset the previews
+
+            onResetDone();
+        }
+    }, [reset, onResetDone]);
+
 
     // Hàm chuyển đổi URL của hình ảnh thành đối tượng File.
     const urlToFile = async (url) => {
@@ -51,7 +62,6 @@ const UploadImage = ({ onChange, initialImages = [] }) => {
 
         loadInitialImages();
     }, [initialImages, onChange]); // Dependency array đảm bảo rằng code chỉ chạy khi `initialImages` hoặc `onChange` thay đổi.
-
 
     // Xử lý sự kiện khi có file mới được chọn từ input.
     const handleFileChange = (event) => {

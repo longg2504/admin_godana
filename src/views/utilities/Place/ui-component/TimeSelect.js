@@ -14,12 +14,17 @@ const createTimeOptions = (start, end, step) => {
     return options;
 };
 
-const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '' }) => {
+const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '', reset }) => {
     const [timeSetting, setTimeSetting] = useState('');
     const [openHour, setOpenHour] = useState('');
     const [openMinute, setOpenMinute] = useState('');
     const [closeHour, setCloseHour] = useState('');
     const [closeMinute, setCloseMinute] = useState('');
+    useEffect(() => {
+        if (reset) {
+            setTimeSetting(''); // Reset the selected option
+        }
+      }, [reset]);
 
     useEffect(() => {
         if (initialOpenTime === '00:00' && initialCloseTime === '23:59') {

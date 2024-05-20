@@ -59,10 +59,13 @@ const FirebaseLogin = (props) => {
       onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
         try {
           const response = await loginUser(values);
-          const { token, roles, id, username } = response.data;
-          localStorage.setItem('authData', JSON.stringify({ token, roles }));
-          localStorage.setItem('id', JSON.stringify(token, id));
-          localStorage.setItem('username', JSON.stringify(token, username));
+        
+          localStorage.setItem('id', response.data.id);
+          localStorage.setItem('jwt', response.data.token);
+          localStorage.setItem('username', response.data.username);
+          localStorage.setItem('roles', response.data.roles[0].authority);
+          localStorage.setItem('avatar', response.data.userAvatar?.fileUrl ? response.data.userAvatar?.fileUrl : "");
+
           // Check if the roles array includes an object with 'authority' equal to 'ADMIN'
           const isAdmin = response.data.roles.some(role => role.authority === ADMIN);
       

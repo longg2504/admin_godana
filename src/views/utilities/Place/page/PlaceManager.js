@@ -100,6 +100,26 @@ const PlaceManager = () => {
     fetchPlaces();
   }, [selectedCategoryId, searchTerm]);
 
+  const refreshPlaces = async () => {
+    try {
+      let res;
+      if (selectedCategoryId || searchTerm) {
+        res = await getPlaceListByCategoryAndSearch(selectedCategoryId, searchTerm);
+      } else {
+        res = await getAllPlace();
+      }
+      setPlaces(res.data.content);
+    } catch (error) {
+      console.error("Failed to fetch places:", error);
+    }
+  };
+  
+  useEffect(() => {
+    refreshPlaces();
+  }, []);
+  
+
+
   // ==============================|| CATEGORY API ||============================== //
   const [categories, setCategories] = useState([]);
   useEffect(() => {
@@ -188,6 +208,8 @@ const PlaceManager = () => {
     setSelectedCategoryId(value);
   };
 
+  
+
   return (
     <MainCard title="PLACE MANAGEMENT">
       <Grid container spacing={gridSpacing}>
@@ -212,7 +234,7 @@ const PlaceManager = () => {
         <Grid item xs={12}>
           <SubCard>
             <DataGridPlace onRowClick={handleRowClick} options={places} />
-            <FormPlaceDialog editData={editData} open={isFormDialogOpen} onClose={handleFormDialogClose} />
+            <FormPlaceDialog editData={editData} open={isFormDialogOpen} onClose={handleFormDialogClose} refreshPlaces={refreshPlaces}/>
           </SubCard>
         </Grid>
       </Grid>

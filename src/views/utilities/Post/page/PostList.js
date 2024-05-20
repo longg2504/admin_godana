@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 
-import { Divider, FormControl, Grid, InputLabel, MenuItem, OutlinedInput, Select } from '@mui/material';
+import { Alert, Divider, FormControl, Grid, InputLabel, MenuItem, OutlinedInput, Select, Snackbar } from '@mui/material';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 import SubCard from 'ui-component/cards/SubCard';
 import DataGridPost from '../ui-component/DataGridPost';
-import { getAllPost, getAllPostsByCategory } from 'constant/constURL/URLPost';
+import { getAllPost, getAllPostsByCategory, deletePost } from 'constant/constURL/URLPost';
 import { fetchCategory, createCategory } from 'constant/constURL/URLCategory';
 import FormDialog from 'ui-component/FormDialog';
 
@@ -67,12 +67,16 @@ function SingleSelect({ label, options, onChange, name, onSave, open }) {
 
 const PostList = () => {
   const [posts, setPosts] = useState([]);
-  // const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [categories, setCategories] = useState([]);
 
-  
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('info'); // Could be 'error', 'info', 'success', 'warning'
+
+  // ==============================|| API ||============================== //
   useEffect(() => {
     const fetchPosts = async () => {
       // setLoading(true);
@@ -96,8 +100,22 @@ const PostList = () => {
     fetchPosts();
   }, [selectedCategoryId]);
 
+  // Delete post handler
+  const handleDelete = async (postId) => {
+    try {
+      await deletePost(postId);
+      setSnackbarMessage('Post successfully deleted!');
+      setSnackbarSeverity('success');
+      setRefreshTrigger(!refreshTrigger); // Togg le to trigger re-fetch
+    } catch (error) {
+      console.error('Failed to delete post:', error);
+      setSnackbarMessage('Failed to delete post. Please try again.');
+      setSnackbarSeverity('error');
+    }
+    setSnackbarOpen(true); // Show the Snackbar after attempting to delete
+  };
   // ==============================|| CATEGORY API ||============================== //
-  
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -110,30 +128,31 @@ const PostList = () => {
 
     fetchCategories();
   }, []);
-  
+
 
   const handleSaveNewCategory = async (newCategoryData) => {
     try {
       const response = await createCategory(newCategoryData);
       console.log('New category created:', response.data);
       setIsDialogOpen(false);
-      onChange(name, response.data.id);
       setSnackbarMessage('Category successfully created!');
       setSnackbarSeverity('success');
-      setOpenSnackbar(true);
     } catch (error) {
       console.error('Error creating category:', error);
       setSnackbarMessage('Failed to create category. Please try again.');
       setSnackbarSeverity('error');
-      setOpenSnackbar(true);
     }
+    setSnackbarOpen(true);
   };
-  
+
   const handleCategoryChange = (name, value) => {
     console.log(value);
     setSelectedCategoryId(value);
   };
 
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+  };
 
   return (
     <MainCard title="POST LIST">
@@ -157,11 +176,15 @@ const PostList = () => {
         </Grid>
         <Grid item xs={12}>
           <SubCard>
-            <DataGridPost options={posts} />
+            <DataGridPost options={posts} handleDelete={handleDelete} />
           </SubCard>
         </Grid>
       </Grid>
-
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </MainCard>
   )
 

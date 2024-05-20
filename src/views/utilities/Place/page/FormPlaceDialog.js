@@ -127,7 +127,7 @@ function SingleSelect({ label, options, onChange, name, error, selectedOption, s
 
 
 // Main dialog component
-const FormPlaceDialog = ({ open, editData, onClose }) => {
+const FormPlaceDialog = ({ open, editData, onClose,refreshPlaces }) => {
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -137,7 +137,7 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [formErrors, setFormErrors] = useState({});
     const navigate = useNavigate();
-    const storedUserId = localStorage.getItem('userId');
+    const storedUserId = localStorage.getItem('id');
     console.log("UserID: "+ storedUserId);
     // ==============================|| VALIDATION FIELD ||============================== //
 
@@ -404,6 +404,7 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
             console.log('Update successful:', response.data);
             openSnackbar('Update successful!', 'success');
             onClose();
+            refreshPlaces();
         } catch (error) {
             console.error('Failed to update place:', error);
             console.log('Place ID:' + editData.id);
@@ -412,6 +413,7 @@ const FormPlaceDialog = ({ open, editData, onClose }) => {
         } finally {
             setIsLoading(false);  // Dừng hiển thị trạng thái loading
             navigate("/place/place-list");
+            
         }
     };
 

@@ -9,3 +9,6 @@ export const getAllPost = () => {
 export const getAllPostsByCategory = (categoryId) => {
     return API.get(`/post?category=${categoryId}`);
   };
+export const deletePost = (postId) => {
+    return API.post(`/post/deleted/${postId}`);
+  };
