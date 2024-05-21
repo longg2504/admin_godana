@@ -597,6 +597,7 @@ const FormPlaceDialog = ({ open, editData, onClose,refreshPlaces }) => {
         } finally {
             setIsLoading(false);  // Dừng hiển thị trạng thái loading
             navigate("/place/place-list");
+            
         }
     };
 
