@@ -41,7 +41,7 @@ const CardWrapper = styled(MainCard)(({ theme }) => ({
 
 // ==============================|| DASHBOARD - TOTAL INCOME DARK CARD ||============================== //
 
-const TotalReviewCard = ({ isLoading }) => {
+const TotalReviewCard = ({ isLoading, totalReview }) => {
   const theme = useTheme();
 
   return (
@@ -73,8 +73,8 @@ const TotalReviewCard = ({ isLoading }) => {
                     mb: 0.45
                   }}
                   primary={
-                    <Typography variant="h4" sx={{ color: '#fff' }}>
-                      $203k
+                    <Typography variant="h2" sx={{ color: '#fff' }}>
+                      {totalReview}
                     </Typography>
                   }
                   secondary={

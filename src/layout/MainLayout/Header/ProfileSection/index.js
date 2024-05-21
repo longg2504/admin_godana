@@ -11,12 +11,10 @@ import {
   Chip,
   ClickAwayListener,
   Divider,
-  InputAdornment,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  OutlinedInput,
   Paper,
   Popper,
   Stack,
@@ -31,7 +29,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
 
 // assets
-import { IconLogout, IconSearch, IconSettings } from '@tabler/icons-react';
+import { IconLogout, IconSettings } from '@tabler/icons-react';
 
 // ==============================|| PROFILE MENU ||============================== //
 
@@ -41,14 +39,12 @@ const ProfileSection = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [value, setValue] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
 
   const anchorRef = useRef(null);
 
-  const username = localStorage.getItem('userName');
-  const avatar = localStorage.getItem('userAvatar');
+  const username = localStorage.getItem('username');
+  const avatar = localStorage.getItem('avatar');
   const jwt = localStorage.getItem('jwt');
   try {
     console.log("Username: " + username);
@@ -60,8 +56,11 @@ const ProfileSection = () => {
 
   const handleLogout = async () => {
     dispatch({ type: 'LOGOUT' });
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('userInfo');
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('id');
+    localStorage.removeItem('roles');
+    localStorage.removeItem('username');
+    localStorage.removeItem('avatar');
     navigate('/admin/login');
   };
 
@@ -72,14 +71,6 @@ const ProfileSection = () => {
     setOpen(false);
   };
 
-  const handleListItemClick = (event, index, route = '') => {
-    setSelectedIndex(index);
-    handleClose(event);
-
-    if (route && route !== '') {
-      navigate(route);
-    }
-  };
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
@@ -172,23 +163,6 @@ const ProfileSection = () => {
                       </Stack>
                       <Typography variant="subtitle2">Project Admin</Typography>
                     </Stack>
-                    <OutlinedInput
-                      sx={{ width: '100%', pr: 1, pl: 2, my: 2 }}
-                      id="input-search-profile"
-                      value={value}
-                      onChange={(e) => setValue(e.target.value)}
-                      placeholder="Search profile options"
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <IconSearch stroke={1.5} size="1rem" color={theme.palette.grey[500]} />
-                        </InputAdornment>
-                      }
-                      aria-describedby="search-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight'
-                      }}
-                    />
-                    <Divider />
                   </Box>
                   <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 250px)', overflowX: 'hidden' }}>
                     <Box sx={{ p: 2 }}>
@@ -209,22 +183,10 @@ const ProfileSection = () => {
                           }
                         }}
                       >
-                        {/* ------ Log out ------ */}
-                        <ListItemButton
-                          sx={{ borderRadius: `${customization.borderRadius}px` }}
-                          selected={selectedIndex === 0}
-                          onClick={(event) => handleListItemClick(event, 0, '#')}
-                        >
-                          <ListItemIcon>
-                            <IconSettings stroke={1.5} size="1.3rem" />
-                          </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Account Settings</Typography>} />
-                        </ListItemButton>
 
                         {/* ------ Log out ------ */}
                         <ListItemButton
                           sx={{ borderRadius: `${customization.borderRadius}px` }}
-                          selected={selectedIndex === 4}
                           onClick={handleLogout}
                         >
                           <ListItemIcon>

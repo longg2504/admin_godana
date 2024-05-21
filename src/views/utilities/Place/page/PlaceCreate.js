@@ -2,7 +2,6 @@ import React, {
   useEffect,
   useState
 } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import {
   Grid, TextField, Button, ImageList, ImageListItem, Stack, Divider,
@@ -21,11 +20,17 @@ import { createPlace } from 'constant/constURL/URLPlace';
 import { fetchDistrict, fetchWard } from 'constant/constURL/URLLocationRegion';
 import SubCard from 'ui-component/cards/SubCard';
 import FormDialog from 'ui-component/FormDialog'
+import ProvinceSelect from '../ui-component/ProvinceSelect';
+import TimeSelect from '../ui-component/TimeSelect';
 
 // ==============================|| SINGLE SELECT ||============================== //
-function SingleSelect({ label, options, onChange, name, error, onSave, open }) {
+function SingleSelect({ label, options, onChange, name, error, onSave, open, reset }) {
   const [selectedOption, setSelectedOption] = useState('');
-
+  useEffect(() => {
+    if (reset) {
+      setSelectedOption(''); // Reset the selected option
+    }
+  }, [reset]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleChange = (event) => {
@@ -75,9 +80,15 @@ function SingleSelect({ label, options, onChange, name, error, onSave, open }) {
 
 
 
-function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, error }) {
-  // const theme = useTheme();
+function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, error, reset }) {
+
   const [selectedOption, setSelectedOption] = useState('');
+  
+  useEffect(() => {
+    if (reset) {
+      setSelectedOption(''); // Reset the selected option
+    }
+}, [reset]);
 
   const handleChange = (event) => {
     setSelectedOption(event.target.value);
@@ -111,31 +122,18 @@ function LocationRegionSelect({ label, options, onSelectionChange, name, disable
   );
 }
 
-function ProvinceSelect() {
-  // Giả sử ID và tên của "Thành Phố Đà Nẵng"
-  const daNangProvince = { id: '48', title: 'Thành Phố Đà Nẵng' };
-
-  return (
-    <FormControl fullWidth margin="normal">
-      <InputLabel id="province-label">Province</InputLabel>
-      <Select
-        labelId="province-label"
-        id="province-select"
-        value={daNangProvince.id} // Trực tiếp sử dụng giá trị cố định
-        input={<OutlinedInput label="Province" />}
-        disabled={true} // Disable Select để người dùng không thể tương tác
-      >
-        <MenuItem value={daNangProvince.id}>{daNangProvince.title}</MenuItem>
-      </Select>
-    </FormControl>
-  );
-}
-
 // ==============================|| UPLOAD IMAGE ||============================== //
-const UploadImage = ({ onChange }) => {
+const UploadImage = ({ onChange, reset }) => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState('');
+
+  useEffect(() => {
+    if (reset) {
+      setImagePreviews([]); // Reset the previews
+
+    }
+  }, [reset]);
 
   const handleFileChange = (event) => {
     if (event.target.files) {
@@ -214,154 +212,16 @@ const UploadImage = ({ onChange }) => {
 };
 
 
-// ==============================|| TIME SELECT ||============================== //
-
-
-
-const createTimeOptions = (start, end, step) => {
-  const options = [];
-  for (let i = start; i <= end; i += step) {
-    options.push(<MenuItem key={i} value={i < 10 ? `0${i}` : `${i}`}>{i < 10 ? `0${i}` : i}</MenuItem>);
-  }
-  return options;
-};
-
-const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '' }) => {
-  const [timeSetting, setTimeSetting] = useState('');
-  const [openHour, setOpenHour] = useState('');
-  const [openMinute, setOpenMinute] = useState('');
-  const [closeHour, setCloseHour] = useState('');
-  const [closeMinute, setCloseMinute] = useState('');
-
-  useEffect(() => {
-    // Check if the initial times are for all day
-    if (initialOpenTime === '00:00' && initialCloseTime === '23:59') {
-      setTimeSetting('all_day');
-    } else if (initialOpenTime && initialCloseTime) {
-      setTimeSetting('specific_time');
-      const [openH, openM] = initialOpenTime.split(':');
-      const [closeH, closeM] = initialCloseTime.split(':');
-      setOpenHour(openH);
-      setOpenMinute(openM);
-      setCloseHour(closeH);
-      setCloseMinute(closeM);
-    }
-  }, [initialOpenTime, initialCloseTime]);
-
-  const handleTimeSettingChange = (event) => {
-    const setting = event.target.value;
-    setTimeSetting(setting);
-
-    if (setting === 'all_day') {
-      setOpenHour('00');
-      setOpenMinute('00');
-      setCloseHour('23');
-      setCloseMinute('59');
-      onTimeChange('openTime', '00:00');
-      onTimeChange('closeTime', '23:59');
-    } else {
-      setOpenHour('');
-      setOpenMinute('');
-      setCloseHour('');
-      setCloseMinute('');
-      onTimeChange('openTime', '');
-      onTimeChange('closeTime', '');
-    }
-  };
-
-  const handleOpenHourChange = (event) => {
-    const newHour = event.target.value;
-    setOpenHour(newHour);
-    onTimeChange('openTime', `${newHour}:${openMinute}`);
-  };
-
-  const handleOpenMinuteChange = (event) => {
-    const newMinute = event.target.value;
-    setOpenMinute(newMinute);
-    onTimeChange('openTime', `${openHour}:${newMinute}`);
-  };
-
-  const handleCloseHourChange = (event) => {
-    const newHour = event.target.value;
-    setCloseHour(newHour);
-    onTimeChange('closeTime', `${newHour}:${closeMinute}`);
-  };
-
-
-  const handleCloseMinuteChange = (event) => {
-    const newMinute = event.target.value;
-    setCloseMinute(newMinute);
-    onTimeChange('closeTime', `${closeHour}:${newMinute}`);
-  };
-
-  // const closingHoursOptions = openHour ? createTimeOptions(parseInt(openHour), 23, 1) : createTimeOptions(0, 23, 1);
-
-  // // For closing minutes, only filter them if the closing hour is the same as the opening hour
-  // const closingMinutesOptions = createTimeOptions(0, 59, 5).filter(minute => {
-  //     const minuteValue = parseInt(minute.props.value);
-  //     return openHour !== closeHour || minuteValue > parseInt(openMinute);
-  // });
-
-  return (
-    <FormControl fullWidth style={{ marginTop: '16px' }}>
-      <InputLabel id="time-setting-label">Chọn Thời Gian</InputLabel>
-      <Select
-        labelId="time-setting-label"
-        id="time-setting"
-        value={timeSetting}
-        onChange={handleTimeSettingChange}
-        fullWidth
-      >
-        <MenuItem value="all_day">Mở cả ngày</MenuItem>
-        <MenuItem value="specific_time">Mốc thời gian</MenuItem>
-      </Select>
-      {timeSetting === 'specific_time' && (
-        <Grid container spacing={2} style={{ marginTop: 8 }}>
-          <Grid item xs={6}>
-            <FormControl fullWidth>
-              <InputLabel>Giờ mở cửa</InputLabel>
-              <Select value={openHour} onChange={handleOpenHourChange}>
-                {createTimeOptions(0, 23, 1)}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={6}>
-            <FormControl fullWidth>
-              <InputLabel>Phút mở cửa</InputLabel>
-              <Select value={openMinute} onChange={handleOpenMinuteChange}>
-                {createTimeOptions(0, 59, 1)}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={6}>
-            <FormControl fullWidth>
-              <InputLabel>Giờ đóng cửa</InputLabel>
-              <Select value={closeHour} onChange={handleCloseHourChange}>
-                {createTimeOptions(parseInt(openHour), 23, 1)}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={6}>
-            <FormControl fullWidth>
-              <InputLabel>Phút đóng cửa</InputLabel>
-              <Select value={closeMinute} onChange={handleCloseMinuteChange}>
-                {createTimeOptions(0, 59, 1)}
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-      )}
-    </FormControl>
-  );
-};
-
-
 // ==============================|| CREATE PLACE ||============================== //
 
 const PlaceCreate = () => {
   const storedUserId = localStorage.getItem('id');
   const [isLoading, setIsLoading] = useState(false);
-    const navigate = useNavigate();
+
+  const [resetSingleSelect, setResetSingleSelect] = useState(false);
+  const [resetLocationSelect, setResetLocationSelect] = useState(false);
+  const [resetUploadImage, setResetUploadImage] = useState(false);
+  const [resetTimeSetting, setResetTimeSetting] = useState(false);
   // ==============================|| FORM ERRORS ||============================== //
 
   const [formErrors, setFormErrors] = useState({});
@@ -525,16 +385,6 @@ const PlaceCreate = () => {
   };
 
 
-  // const handleFileChange = (event) => {
-  //   if (event.target.files.length) {
-  //     const files = Array.from(event.target.files);
-  //     setFormData(formData => ({
-  //       ...formData,
-  //       placeAvatar: [...formData.placeAvatar, ...files]
-  //     }));
-  //   }
-  // };
-
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     setFormData(formData => ({
@@ -544,7 +394,11 @@ const PlaceCreate = () => {
     console.log(formData.placeAvatar, "Form Avatar:")
   };
 
+  const handleResetDone = () => {
+    setResetUploadImage(false);
+  };
 
+  //--------------------------------------SUMMIT---------------------------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -560,18 +414,45 @@ const PlaceCreate = () => {
       }
     });
 
-    for (let [key, value] of submitData.entries()) {
-      console.log(`${key}: ${value}`);
-    }
-
     try {
-      const response = await createPlace(submitData);
+      await createPlace(submitData);
       setSnackbarMessage('Place successfully created!');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
-      console.log('Place created:', response.data);
-      
-      
+      setFormData({
+        placeTitle: '',
+        content: '',
+        longitude: '',
+        latitude: '',
+        placeAvatar: [],
+        categoryId: '',
+        provinceId: '48',
+        provinceName: 'Thành Phố Đà Nẵng',
+        districtId: '',
+        districtName: '',
+        wardId: '',
+        wardName: '',
+        address: '',
+        email: '',
+        phone: '',
+        website: '',
+        openTime: '',
+        closeTime: '',
+        userId: storedUserId,
+      });
+
+      setResetSingleSelect(true);
+      setResetLocationSelect(true);
+      setResetUploadImage(true);
+      setResetTimeSetting(true);
+
+      setTimeout(() => {
+        setResetSingleSelect(false);
+        setResetLocationSelect(false);
+        setResetUploadImage(false);
+        setResetTimeSetting(false);
+      }, 0);
+
     } catch (error) {
       if (error.response && error.response.status === 400) {
         setSnackbarMessage('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại các trường.');
@@ -579,12 +460,9 @@ const PlaceCreate = () => {
         setSnackbarMessage('Đã xảy ra lỗi. Vui lòng thử lại sau.');
       }
       setSnackbarSeverity('error');
-      console.error('Failed to create place:', error);
-      console.log('Data:', submitData);
     } finally {
-      setIsLoading(false);  // Dừng hiển thị trạng thái loading
-      setOpenSnackbar(true); 
-      navigate("/place/place-list");
+      setIsLoading(false);
+      setOpenSnackbar(true);
     }
   };
 
@@ -640,18 +518,14 @@ const PlaceCreate = () => {
             <Divider textAlign="left" spacing={2}>Image</Divider>
             <Stack spacing={1}>
               <SubCard>
-                <UploadImage onChange={handleFileChange} />
+                <UploadImage onChange={handleFileChange} reset={resetUploadImage} onResetDone={handleResetDone} initialImages={[]} />
               </SubCard>
             </Stack>
           </Grid>
 
           <Grid item xs={12} md={6}>
             <Divider textAlign="left">Infomation</Divider>
-            <TextField
-              label="Place Title"
-              fullWidth
-              margin="normal"
-              name="placeTitle"
+            <TextField label="Place Title" fullWidth margin="normal" name="placeTitle"
               onChange={handleChange}
               required
               value={formData.placeTitle}
@@ -732,7 +606,8 @@ const PlaceCreate = () => {
               onChange={(name, value) => handleSelectionChange(name, value)}
               name="categoryId"
               error={formErrors.categoryId}
-              onSave={handleSaveNewCategory} />
+              onSave={handleSaveNewCategory}
+              reset={resetSingleSelect} />
           </Grid>
 
         </Grid>
@@ -778,6 +653,7 @@ const PlaceCreate = () => {
               disabled={false}
               name="districtId"
               error={formErrors.districtId}
+              reset={resetLocationSelect}
             />
           </Grid>
           <Grid item xs={4}>
@@ -787,7 +663,8 @@ const PlaceCreate = () => {
               onSelectionChange={(name, value) => handleSelectionChange(name, value)}
               name="wardId"
               disabled={!formData.districtId} // Disable nếu district chưa được chọn
-              error={formErrors.wardId} />
+              error={formErrors.wardId}
+              reset={resetLocationSelect} />
           </Grid>
           <Grid item xs={12}>
             <TextField
@@ -808,7 +685,7 @@ const PlaceCreate = () => {
         <Divider textAlign="left">Time Open/Close</Divider>
         <Grid container spacing={2}>
           <Grid item xs={6}>
-            <TimeSelect label="Set Time" onTimeChange={handleTimeChange} />
+            <TimeSelect label="Set Time" onTimeChange={handleTimeChange} reset={resetTimeSetting} />
           </Grid>
         </Grid>
 

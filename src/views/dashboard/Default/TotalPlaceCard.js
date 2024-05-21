@@ -1,32 +1,28 @@
 import PropTypes from 'prop-types';
+
 // material-ui
-import { useTheme, styled } from '@mui/material/styles';
+import { styled, useTheme } from '@mui/material/styles';
 import { Avatar, Box, Grid, Typography } from '@mui/material';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
-import SkeletonTotalOrderCard from 'ui-component/cards/Skeleton/EarningCard';
-// assets
-import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
+import SkeletonEarningCard from 'ui-component/cards/Skeleton/EarningCard';
 
+// assets
+import EarningIcon from 'assets/images/icons/earning.svg';
 
 const CardWrapper = styled(MainCard)(({ theme }) => ({
-  backgroundColor: theme.palette.primary.dark,
+  backgroundColor: theme.palette.secondary.dark,
   color: '#fff',
   overflow: 'hidden',
   position: 'relative',
-  '&>div': {
-    position: 'relative',
-    zIndex: 5
-  },
   '&:after': {
     content: '""',
     position: 'absolute',
     width: 210,
     height: 210,
-    background: theme.palette.primary[800],
+    background: theme.palette.secondary[800],
     borderRadius: '50%',
-    zIndex: 1,
     top: -85,
     right: -95,
     [theme.breakpoints.down('sm')]: {
@@ -37,10 +33,9 @@ const CardWrapper = styled(MainCard)(({ theme }) => ({
   '&:before': {
     content: '""',
     position: 'absolute',
-    zIndex: 1,
     width: 210,
     height: 210,
-    background: theme.palette.primary[800],
+    background: theme.palette.secondary[800],
     borderRadius: '50%',
     top: -125,
     right: -15,
@@ -52,14 +47,16 @@ const CardWrapper = styled(MainCard)(({ theme }) => ({
   }
 }));
 
-// ==============================|| DASHBOARD - TOTAL ORDER LINE CHART CARD ||============================== //
+// ===========================|| DASHBOARD DEFAULT - EARNING CARD ||=========================== //
 
-const TotalPostCard = ({ isLoading, totalPost }) => {
+const TotalPlaceCard = ({ isLoading, totalPlace }) => {
   const theme = useTheme();
+
+
   return (
     <>
       {isLoading ? (
-        <SkeletonTotalOrderCard />
+        <SkeletonEarningCard />
       ) : (
         <CardWrapper border={false} content={false}>
           <Box sx={{ p: 2.25 }}>
@@ -72,21 +69,20 @@ const TotalPostCard = ({ isLoading, totalPost }) => {
                       sx={{
                         ...theme.typography.commonAvatar,
                         ...theme.typography.largeAvatar,
-                        backgroundColor: theme.palette.primary[800],
-                        color: '#fff',
+                        backgroundColor: theme.palette.secondary[800],
                         mt: 1
                       }}
                     >
-                      <LocalMallOutlinedIcon fontSize="inherit" />
+                      <img src={EarningIcon} alt="Notification" />
                     </Avatar>
                   </Grid>
                 </Grid>
               </Grid>
-
+              
               <Grid item>
                 <Grid container alignItems="center">
                   <Grid item>
-                    <Typography sx={{ fontSize: '3rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>{totalPost}</Typography>
+                    <Typography sx={{ fontSize: '3rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>{totalPlace}</Typography>
                   </Grid>
                 </Grid>
               </Grid>
@@ -98,7 +94,7 @@ const TotalPostCard = ({ isLoading, totalPost }) => {
                     color: theme.palette.secondary[200]
                   }}
                 >
-                  Total Post
+                  Total Place
                 </Typography>
               </Grid>
             </Grid>
@@ -109,8 +105,8 @@ const TotalPostCard = ({ isLoading, totalPost }) => {
   );
 };
 
-TotalPostCard.propTypes = {
+TotalPlaceCard.propTypes = {
   isLoading: PropTypes.bool
 };
 
-export default TotalPostCard;
+export default TotalPlaceCard;
