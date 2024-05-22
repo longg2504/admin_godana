@@ -7,202 +7,18 @@ import {
     Snackbar, Alert, CircularProgress, Backdrop, Stack, Divider
 }
     from '@mui/material';
-
+    import { useNavigate } from 'react-router-dom';
 import SubCard from 'ui-component/cards/SubCard';
 import FormDialog from 'ui-component/FormDialog'
 import { fetchUpdatePlaceById } from 'constant/constURL/URLPlace';
 import { fetchCategory, createCategory } from 'constant/constURL/URLCategory';
 import { fetchDistrict, fetchWard } from 'constant/constURL/URLLocationRegion';
-import UploadImage from '../ui-component/UploadImage';
-import { useNavigate } from 'react-router';
+import UploadImage from 'views/utilities/Place/ui-component/UploadImage';
 
-const createTimeOptions = (start, end, step) => {
-    const options = [];
-    for (let i = start; i <= end; i += step) {
-        options.push(<MenuItem key={i} value={`${i < 10 ? `0${i}` : i}`}>{`${i < 10 ? `0${i}` : i}`}</MenuItem>);
-    }
-    return options;
-};
+import ProvinceSelect from '../ui-component/ProvinceSelect';
+import LocationRegionSelect from '../ui-component/LocationRegionSelect';
+import TimeSelect from '../ui-component/TimeSelect';
 
-const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '' }) => {
-    const [timeSetting, setTimeSetting] = useState('');
-    const [openHour, setOpenHour] = useState('');
-    const [openMinute, setOpenMinute] = useState('');
-    const [closeHour, setCloseHour] = useState('');
-    const [closeMinute, setCloseMinute] = useState('');
-
-    useEffect(() => {
-        if (initialOpenTime === '00:00' && initialCloseTime === '23:59') {
-            setTimeSetting('all_day');
-        } else if (initialOpenTime && initialCloseTime) {
-            setTimeSetting('specific_time');
-            const [openH, openM] = initialOpenTime.split(':');
-            const [closeH, closeM] = initialCloseTime.split(':');
-            setOpenHour(openH);
-            setOpenMinute(openM);
-            setCloseHour(closeH);
-            setCloseMinute(closeM);
-        }
-    }, [initialOpenTime, initialCloseTime]);
-
-    const handleTimeChange = (field, value) => {
-        if (field === 'openTime') {
-            const [hour, minute] = value.split(':');
-            setOpenHour(hour);
-            setOpenMinute(minute);
-            if (parseInt(hour) > parseInt(closeHour) || (hour === closeHour && parseInt(minute) >= parseInt(closeMinute))) {
-                setCloseHour(hour);
-                setCloseMinute(minute);
-            }
-            onTimeChange('openTime', `${hour}:${minute}`);
-        } else if (field === 'closeTime') {
-            const [hour, minute] = value.split(':');
-            setCloseHour(hour);
-            setCloseMinute(minute);
-            onTimeChange('closeTime', `${hour}:${minute}`);
-        }
-    };
-
-    const handleTimeSettingChange = (event) => {
-        const setting = event.target.value;
-        setTimeSetting(setting);
-
-        if (setting === 'all_day') {
-            handleTimeChange('openTime', '00:00');
-            handleTimeChange('closeTime', '23:59');
-        } else {
-            setOpenHour('');
-            setOpenMinute('');
-            setCloseHour('');
-            setCloseMinute('');
-            onTimeChange('openTime', '');
-            onTimeChange('closeTime', '');
-        }
-    };
-
-    // Only filter closing minutes if the closing hour is the same as the opening hour
-    const closingMinutesOptions = createTimeOptions(0, 59, 1).filter(minute => {
-        const minuteValue = parseInt(minute.props.value);
-        return openHour !== closeHour || minuteValue >= parseInt(openMinute);
-    });
-
-    return (
-        <FormControl fullWidth style={{ marginTop: '16px' }}>
-            <InputLabel id="time-setting-label">Chọn Thời Gian</InputLabel>
-            <Select
-                labelId="time-setting-label"
-                id="time-setting"
-                value={timeSetting}
-                onChange={handleTimeSettingChange}
-                fullWidth
-            >
-                <MenuItem value="all_day">Mở cả ngày</MenuItem>
-                <MenuItem value="specific_time">Mốc thời gian</MenuItem>
-            </Select>
-            {timeSetting === 'specific_time' && (
-                <Grid container spacing={2} style={{ marginTop: 8 }}>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth>
-                            <InputLabel>Giờ mở cửa</InputLabel>
-                            <Select value={openHour} onChange={(e) => handleTimeChange('openTime', `${e.target.value}:${openMinute}`)}>
-                                {createTimeOptions(0, 23, 1)}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth>
-                            <InputLabel>Phút mở cửa</InputLabel>
-                            <Select value={openMinute} onChange={(e) => handleTimeChange('openTime', `${openHour}:${e.target.value}`)}>
-                                {createTimeOptions(0, 59, 1)}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth>
-                            <InputLabel>Giờ đóng cửa</InputLabel>
-                            <Select value={closeHour} onChange={(e) => handleTimeChange('closeTime', `${e.target.value}:${closeMinute}`)}>
-                                {createTimeOptions(parseInt(openHour), 23, 1)}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth>
-                            <InputLabel>Phút đóng cửa</InputLabel>
-                            <Select value={closeMinute} onChange={(e) => handleTimeChange('closeTime', `${closeHour}:${e.target.value}`)}>
-                                {closingMinutesOptions}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                </Grid>
-            )}
-        </FormControl>
-    );
-};
-
-
-
-// ==============================|| LOCATION REGION SELECT ||============================== //
-
-function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, selectedOption }) {
-    const [currentSelection, setCurrentSelection] = useState(selectedOption);
-
-    useEffect(() => {
-        if (selectedOption) {
-            setCurrentSelection(selectedOption);
-        }
-    }, [selectedOption]);
-
-    const handleChange = (event) => {
-        const newSelection = event.target.value;
-        setCurrentSelection(newSelection); // Update the local state
-        if (onSelectionChange) {
-            onSelectionChange(name, newSelection); // Pass both the field name and value
-        }
-    };
-
-    return (
-        <FormControl fullWidth margin="normal" >
-            <InputLabel id={`${label}-label`}>{label}</InputLabel>
-            <Select
-                labelId={`${label}-label`}
-                id={`${label}`}
-                value={currentSelection}
-                onChange={handleChange}
-                input={<OutlinedInput label={label} />}
-                disabled={disabled}
-            >
-                {options.map((option) => (
-                    <MenuItem
-                        key={option.id}
-                        value={option.id}
-                    >
-                        {option.title}
-                    </MenuItem>
-                ))}
-            </Select>
-        </FormControl>
-    );
-}
-
-function ProvinceSelect() {
-    // Giả sử ID và tên của "Thành Phố Đà Nẵng"
-    const daNangProvince = { id: '48', title: 'Thành Phố Đà Nẵng' };
-
-    return (
-        <FormControl fullWidth margin="normal">
-            <InputLabel id="province-label">Province</InputLabel>
-            <Select
-                labelId="province-label"
-                id="province-select"
-                value={daNangProvince.id} // Trực tiếp sử dụng giá trị cố định
-                input={<OutlinedInput label="Province" />}
-                disabled={true} // Disable Select để người dùng không thể tương tác
-            >
-                <MenuItem value={daNangProvince.id}>{daNangProvince.title}</MenuItem>
-            </Select>
-        </FormControl>
-    );
-}
 
 // ==============================|| LOCATION REGION SELECT ||============================== //
 // ==============================|| SINGLE SELECT ||============================== //
@@ -315,7 +131,6 @@ const FormPlaceDialog = ({ open, editData, onClose,refreshPlaces }) => {
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
     const [categories, setCategories] = useState([]);
-    // const [isDialogOpen, setIsDialogOpen] = useState(open);
     const [selectedCategoryId, setSelectedCategoryId] = useState('');
     const [selectedDistrictId, setSelectedDistrictId] = useState('');
     const [selectedWardId, setSelectedWardId] = useState('');
@@ -326,51 +141,51 @@ const FormPlaceDialog = ({ open, editData, onClose,refreshPlaces }) => {
     console.log("UserID: "+ storedUserId);
     // ==============================|| VALIDATION FIELD ||============================== //
 
-    // const validateField = (name, value) => {
-    //     switch (name) {
-    //         case 'placeTitle':
-    //             if (!value.trim()) return "Place Title is required";
-    //             break;
-    //         case 'content':
-    //             if (!value.trim()) return "Content is required";
-    //             break;
-    //         case 'longitude':
-    //             if (!value.trim()) return "Longitude is required";
-    //             else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid longitude format";
-    //             break;
-    //         case 'latitude':
-    //             if (!value.trim()) return "Latitude is required";
-    //             else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid latitude format"; break;
-    //         case 'address':
-    //             if (!value.trim()) return "Address is required";
-    //             break;
-    //         case 'email':
-    //             if (!value.trim()) return "Email is required";
-    //             else if (!/\S+@\S+\.\S+/.test(value)) return "Email is not valid";
-    //             break;
-    //         case 'phone':
-    //             if (!value.trim()) return "Phone is required";
-    //             else if (!/^\d{1,10}$/.test(value)) return "Phone must be up to 10 digits";
-    //             break;
-    //         case 'website':
-    //             if (!value.trim()) return "Website is required";
-    //             // else if (!/^(https?:\/\/)?([\da-z.-]+)\.([a-z]{2,6})([\w .-]*)*\/?$/.test(value)) return "Invalid website format";
-    //             break;
-    //         case 'openTime':
-    //         case 'closeTime':
-    //             if (!value.trim()) return `${name} is required`;
-    //             else if (!/^([1-9]|1[012]):[0-5][0-9]\s?(AM|PM)$/i.test(value)) return "Invalid time format, expected h:mm AM/PM";
-    //             break;
-    //         case 'categoryId':
-    //         case 'districtId':
-    //         case 'wardId':
-    //             // if (!value) return `${name.replace('Id', '')} is required`;
-    //             break;
-    //         default:
-    //             return "";
-    //     }
-    //     return "";
-    // };
+    const validateField = (name, value) => {
+        switch (name) {
+            case 'placeTitle':
+                if (!value.trim()) return "Place Title is required";
+                break;
+            case 'content':
+                if (!value.trim()) return "Content is required";
+                break;
+            case 'longitude':
+                if (!value.trim()) return "Longitude is required";
+                else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid longitude format";
+                break;
+            case 'latitude':
+                if (!value.trim()) return "Latitude is required";
+                else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid latitude format"; break;
+            case 'address':
+                if (!value.trim()) return "Address is required";
+                break;
+            case 'email':
+                if (!value.trim()) return "Email is required";
+                else if (!/\S+@\S+\.\S+/.test(value)) return "Email is not valid";
+                break;
+            case 'phone':
+                if (!value.trim()) return "Phone is required";
+                else if (!/^\d{1,10}$/.test(value)) return "Phone must be up to 10 digits";
+                break;
+            case 'website':
+                if (!value.trim()) return "Website is required";
+                // else if (!/^(https?:\/\/)?([\da-z.-]+)\.([a-z]{2,6})([\w .-]*)*\/?$/.test(value)) return "Invalid website format";
+                break;
+            case 'openTime':
+            case 'closeTime':
+                if (!value.trim()) return `${name} is required`;
+                else if (!/^([1-9]|1[012]):[0-5][0-9]\s?(AM|PM)$/i.test(value)) return "Invalid time format, expected h:mm AM/PM";
+                break;
+            case 'categoryId':
+            case 'districtId':
+            case 'wardId':
+                // if (!value) return `${name.replace('Id', '')} is required`;
+                break;
+            default:
+                return "";
+        }
+        return "";
+    };
     // ==============================|| CATEGORY API ||============================== //
 
     useEffect(() => {
@@ -487,8 +302,8 @@ const FormPlaceDialog = ({ open, editData, onClose,refreshPlaces }) => {
             ...updatedValues
         }));
 
-        // const errorMessage = validateField(name, value);
-        // setFormErrors(prevErrors => ({ ...prevErrors, [name]: errorMessage }));
+        const errorMessage = validateField(name, value);
+        setFormErrors(prevErrors => ({ ...prevErrors, [name]: errorMessage }));
     };
 
 
@@ -510,6 +325,7 @@ const FormPlaceDialog = ({ open, editData, onClose,refreshPlaces }) => {
 
 
     const [formData, setFormData] = useState({
+        id: '',
         placeTitle: '',
         content: '',
         longitude: '',
@@ -529,7 +345,7 @@ const FormPlaceDialog = ({ open, editData, onClose,refreshPlaces }) => {
         website: '',
         openTime: '',
         closeTime: '',
-        userId: 1,
+        userId: storedUserId || 1,
     });
 
     // Xử lý sự thay đổi trên form và cập nhật formData
@@ -622,8 +438,8 @@ const FormPlaceDialog = ({ open, editData, onClose,refreshPlaces }) => {
 
                     <Grid item xs={12} md={6}>
                         <Divider textAlign="left">Infomation</Divider>
-                        <TextField label="Place Title" name="placeTitle" fullWidth onChange={handleChange} value={formData.placeTitle} margin="normal" />
-                        <TextField label="Content" name="content" fullWidth rows={6} onChange={handleChange} value={formData.content} margin="normal" multiline />
+                        <TextField label="Place Title" name="placeTitle" fullWidth onChange={handleChange} value={formData.placeTitle} margin="normal" error={!!formErrors.placeTitle}/>
+                        <TextField label="Content" name="content" fullWidth rows={6} onChange={handleChange} value={formData.content} margin="normal" multiline error={!!formErrors.content}/>
                     </Grid>
                 </Grid>
 
@@ -631,13 +447,13 @@ const FormPlaceDialog = ({ open, editData, onClose,refreshPlaces }) => {
                 <Divider textAlign="left">Contact</Divider>
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={4}>
-                        <TextField label="Phone" name="phone" fullWidth onChange={handleChange} value={formData.phone} margin="normal" />
+                        <TextField label="Phone" name="phone" fullWidth onChange={handleChange} value={formData.phone} margin="normal" error={!!formErrors.phone}/>
                     </Grid>
                     <Grid item xs={12} md={4}>
-                        <TextField label="Email" name="email" fullWidth onChange={handleChange} value={formData.email} margin="normal" />
+                        <TextField label="Email" name="email" fullWidth onChange={handleChange} value={formData.email} margin="normal" error={!!formErrors.email}/>
                     </Grid>
                     <Grid item xs={12} md={4}>
-                        <TextField label="Website" name="website" fullWidth onChange={handleChange} value={formData.website} margin="normal" />
+                        <TextField label="Website" name="website" fullWidth onChange={handleChange} value={formData.website} margin="normal" error={!!formErrors.website}/>
                     </Grid>
                 </Grid>
 
@@ -653,13 +469,13 @@ const FormPlaceDialog = ({ open, editData, onClose,refreshPlaces }) => {
                 <Divider textAlign="left">Location Region</Divider>
                 <Grid container spacing={1}>
                     <Grid item xs={6}>
-                        <TextField label="Longitude" name="longitude" fullWidth onChange={handleChange} value={formData.longitude} margin="normal" />
+                        <TextField label="Longitude" name="longitude" fullWidth onChange={handleChange} value={formData.longitude} margin="normal" error={!!formErrors.longitude}/>
                     </Grid>
                     <Grid item xs={6}>
-                        <TextField label="Latitude" name="latitude" fullWidth onChange={handleChange} value={formData.latitude} margin="normal" />
+                        <TextField label="Latitude" name="latitude" fullWidth onChange={handleChange} value={formData.latitude} margin="normal" error={!!formErrors.latitude}/>
                     </Grid>
                     <Grid item xs={12}>
-                        <TextField label="Address" name="address" fullWidth onChange={handleChange} value={formData.address} margin="normal" />
+                        <TextField label="Address" name="address" fullWidth onChange={handleChange} value={formData.address} margin="normal" error={!!formErrors.address}/>
                     </Grid>
                     <Grid item xs={4}>
                         <ProvinceSelect />
