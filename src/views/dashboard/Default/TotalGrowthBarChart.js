@@ -18,25 +18,46 @@ import { gridSpacing } from 'store/constant';
 // chart data
 import chartData from './chart-data/total-growth-bar-chart';
 
-const status = [
-  {
-    value: 'today',
-    label: 'Today'
-  },
-  {
-    value: 'month',
-    label: 'This Month'
-  },
-  {
-    value: 'year',
-    label: 'This Year'
-  }
+// Utility functions for date formatting
+const formatDate = (date) => {
+  const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+  return date.toLocaleDateString(undefined, options);
+};
+
+const formatMonthYear = (date) => {
+  const options = { year: 'numeric', month: 'numeric' };
+  return date.toLocaleDateString(undefined, options);
+};
+
+const formatYear = (date) => {
+  const options = { year: 'numeric' };
+  return date.toLocaleDateString(undefined, options);
+};
+
+const formatLastSixMonths = () => {
+  const today = new Date();
+  const pastDate = new Date(today);
+  pastDate.setMonth(today.getMonth() - 6);
+
+  return `${formatMonthYear(pastDate)} - ${formatMonthYear(today)}`;
+};
+
+const statusOptions = [
+  { value: 'day', label: 'Today' },
+  { value: 'month', label: 'This Month' },
+  { value: 'year', label: 'This Year' },
+  { value: 'sixMonths', label: 'Last 6 Months' }
 ];
 
-// ==============================|| DASHBOARD DEFAULT - TOTAL GROWTH BAR CHART ||============================== //
+const seriesOptions = [
+  { value: 'place', label: 'Place' },
+  { value: 'user', label: 'User' }
+];
 
-const TotalGrowthBarChart = ({ isLoading }) => {
-  const [value, setValue] = useState('today');
+const TotalGrowthBarChart = ({ isLoading, reportData }) => {
+  const [status, setStatus] = useState('day');
+  const [series, setSeries] = useState('place');
+  const [timePeriod, setTimePeriod] = useState(formatDate(new Date()));
   const theme = useTheme();
   const customization = useSelector((state) => state.customization);
 
@@ -52,13 +73,18 @@ const TotalGrowthBarChart = ({ isLoading }) => {
   const secondaryLight = theme.palette.secondary.light;
 
   useEffect(() => {
+    if (!reportData) return;
+
+    const categories = getCategories(status, reportData, series);
+    const data = getData(status, reportData, series);
+
     const newChartData = {
-      ...chartData.options,
+      ...chartData(categories, data).options,
       colors: [primary200, primaryDark, secondaryMain, secondaryLight],
       xaxis: {
         labels: {
           style: {
-            colors: [primary, primary, primary, primary, primary, primary, primary, primary, primary, primary, primary, primary]
+            colors: Array(categories.length).fill(primary)
           }
         }
       },
@@ -82,11 +108,29 @@ const TotalGrowthBarChart = ({ isLoading }) => {
       }
     };
 
-    // do not load chart when loading
     if (!isLoading) {
-      ApexCharts.exec(`bar-chart`, 'updateOptions', newChartData);
+      ApexCharts.exec('bar-chart', 'updateOptions', newChartData);
     }
-  }, [navType, primary200, primaryDark, secondaryMain, secondaryLight, primary, darkLight, grey200, isLoading, grey500]);
+  }, [status, series, navType, primary200, primaryDark, secondaryMain, secondaryLight, primary, darkLight, grey200, isLoading, grey500, reportData]);
+
+  useEffect(() => {
+    switch (status) {
+      case 'day':
+        setTimePeriod(formatDate(new Date()));
+        break;
+      case 'month':
+        setTimePeriod(formatMonthYear(new Date()));
+        break;
+      case 'year':
+        setTimePeriod(formatYear(new Date()));
+        break;
+      case 'sixMonths':
+        setTimePeriod(formatLastSixMonths());
+        break;
+      default:
+        setTimePeriod(formatDate(new Date()));
+    }
+  }, [status]);
 
   return (
     <>
@@ -100,16 +144,35 @@ const TotalGrowthBarChart = ({ isLoading }) => {
                 <Grid item>
                   <Grid container direction="column" spacing={1}>
                     <Grid item>
-                      <Typography variant="subtitle2">Total Growth</Typography>
-                    </Grid>
-                    <Grid item>
-                      <Typography variant="h3">$2,324.00</Typography>
+                      <Typography variant="h3">Report Chart</Typography>
                     </Grid>
                   </Grid>
                 </Grid>
+                <Typography variant="h3" style={{ marginRight: '10px' }}>
+                    {timePeriod}
+                  </Typography>
                 <Grid item>
-                  <TextField id="standard-select-currency" select value={value} onChange={(e) => setValue(e.target.value)}>
-                    {status.map((option) => (
+                  
+                  <TextField
+                    id="status-select"
+                    select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    style={{ marginRight: '10px' }}
+                  >
+                    {statusOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField
+                    id="series-select"
+                    select
+                    value={series}
+                    onChange={(e) => setSeries(e.target.value)}
+                  >
+                    {seriesOptions.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
                         {option.label}
                       </MenuItem>
@@ -119,7 +182,7 @@ const TotalGrowthBarChart = ({ isLoading }) => {
               </Grid>
             </Grid>
             <Grid item xs={12}>
-              <Chart {...chartData} />
+              <Chart {...chartData(getCategories(status, reportData, series), getData(status, reportData, series))} />
             </Grid>
           </Grid>
         </MainCard>
@@ -129,7 +192,31 @@ const TotalGrowthBarChart = ({ isLoading }) => {
 };
 
 TotalGrowthBarChart.propTypes = {
-  isLoading: PropTypes.bool
+  isLoading: PropTypes.bool,
+  reportData: PropTypes.object.isRequired
 };
 
 export default TotalGrowthBarChart;
+
+const getCategories = (status, reportData, series) => {
+  if (status === 'day') return ['Today'];
+  if (status === 'month') return ['This Month'];
+  if (status === 'year') return reportData[`${series}YearReport`]?.map((data) => `Month ${data.month}`) || [];
+  if (status === 'sixMonths') return reportData[`${series}SixMonthAgoReport`]?.map((data) => `Month ${data.month}`) || [];
+  return [];
+};
+
+const getData = (status, reportData, series) => {
+  if (status === 'day') return [{ name: series, data: [reportData[`day${capitalize(series)}sReport`]?.count || 0] }];
+  if (status === 'month') return [{ name: series, data: [reportData[`month${capitalize(series)}sReport`]?.count || 0] }];
+  if (status === 'year') return [{ name: series, data: reportData[`year${capitalize(series)}sReport`]?.map((data) => data.count) || [] }];
+  if (status === 'sixMonths') return [{ name: series, data: reportData[`${series}SixMonthAgoReport`]?.map((data) => data.count) || [] }];
+
+  console.log(reportData[`day${capitalize(series)}sReport`].count);
+  console.log(reportData[`month${capitalize(series)}sReport`].count);
+  console.log(reportData[`year${capitalize(series)}sReport`]?.map((data) => data.count));
+  console.log(reportData[`${series}SixMonthAgoReport`]?.map((data) => data.count));
+  return [];
+};
+
+const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);

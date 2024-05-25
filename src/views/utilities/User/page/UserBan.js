@@ -7,7 +7,6 @@ import {
   IconButton,
   Avatar,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
@@ -15,7 +14,7 @@ import {
   Alert
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import DoDisturbOffIcon from '@mui/icons-material/DoDisturbOff';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
@@ -36,19 +35,19 @@ function ActionButtons({ id, onUnBan }) {
   return (
     <>
       <IconButton onClick={handleOpen}>
-        <DoDisturbOffIcon />
+        <LockOpenIcon color="error"/>
       </IconButton>
       <Dialog
         open={open}
         onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Confirm Ban"}</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to unban this user?
-          </DialogContentText>
+          <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+            <LockOpenIcon color="error" style={{ fontSize: 100 }} />
+            <DialogContentText style={{ marginTop: 16, textAlign: 'center', fontSize: '1.2rem' }}>
+              Are you sure you want to open block this user?
+            </DialogContentText>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
@@ -167,14 +166,14 @@ function UserList() {
       </Grid>
       <Divider component="" style={{ padding: '10px 0' }} />
       <SubCard>
-        <DataGridDemo handleUnBan={handleUnBan} refreshTrigger={refreshTrigger}/>
+        <DataGridDemo handleUnBan={handleUnBan} refreshTrigger={refreshTrigger} />
         <Snackbar
           open={openSnackbar}
           autoHideDuration={6000}
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         >
-          <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }} variant="filled">
             {snackbarMessage}
           </Alert>
         </Snackbar>

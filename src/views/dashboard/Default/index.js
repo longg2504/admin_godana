@@ -17,7 +17,7 @@ import { getAllReport } from 'constant/constURL/URLReport';
 
 const Dashboard = () => {
   const [isLoading, setLoading] = useState(true);
-  const [reportData, setReportData] = useState({});
+  const [reportData, setReportData] = useState(null);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -40,18 +40,18 @@ const Dashboard = () => {
       <Grid item xs={12}>
         <Grid container spacing={gridSpacing}>
           <Grid item lg={4} md={6} sm={6} xs={12}>
-            <TotalPlaceCard isLoading={isLoading} totalPlace={reportData.countPlace}/>
+            <TotalPlaceCard isLoading={isLoading} totalPlace={reportData?.countPlace} />
           </Grid>
           <Grid item lg={4} md={6} sm={6} xs={12}>
-            <TotalPostCard isLoading={isLoading} totalPost={reportData.countPost}/>
+            <TotalPostCard isLoading={isLoading} totalPost={reportData?.countPost} />
           </Grid>
           <Grid item lg={4} md={12} sm={12} xs={12}>
             <Grid container spacing={gridSpacing}>
               <Grid item sm={6} xs={12} md={6} lg={12}>
-                <TotalReviewCard isLoading={isLoading} totalReview={reportData.countRating}/>
+                <TotalReviewCard isLoading={isLoading} totalReview={reportData?.countRating} />
               </Grid>
               <Grid item sm={6} xs={12} md={6} lg={12}>
-                <TotalUserCard isLoading={isLoading} totalUser={reportData.countUser}/>
+                <TotalUserCard isLoading={isLoading} totalUser={reportData?.countUser} />
               </Grid>
             </Grid>
           </Grid>
@@ -60,10 +60,10 @@ const Dashboard = () => {
       <Grid item xs={12}>
         <Grid container spacing={gridSpacing}>
           <Grid item xs={12} md={8}>
-            <TotalGrowthBarChart isLoading={isLoading} />
+            <TotalGrowthBarChart isLoading={isLoading} reportData={reportData} />
           </Grid>
           <Grid item xs={12} md={4}>
-            <PopularCategoryPlaceList isLoading={isLoading} popularCategories={reportData.countPlacesByCateReport}/>
+            <PopularCategoryPlaceList isLoading={isLoading} popularCategories={reportData?.countPlacesByCateReport} />
           </Grid>
         </Grid>
       </Grid>

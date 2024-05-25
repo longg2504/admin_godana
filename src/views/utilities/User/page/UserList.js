@@ -7,16 +7,14 @@ import {
   IconButton,
   Avatar,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
   Snackbar,
   Alert,
-  CircularProgress
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import DoDisturbOnIcon from '@mui/icons-material/DoDisturbOn';
+import BlockIcon from '@mui/icons-material/Block';
 
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
@@ -37,19 +35,19 @@ function ActionButtons({ id, onBan }) {
   return (
     <>
       <IconButton onClick={handleOpen}>
-        <DoDisturbOnIcon />
+        <BlockIcon color="error"/>
       </IconButton>
       <Dialog
         open={open}
         onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Confirm Ban"}</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to ban this user?
-          </DialogContentText>
+          <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+            <BlockIcon color="error" style={{ fontSize: 100 }} />
+            <DialogContentText style={{ marginTop: 16, textAlign: 'center', fontSize: '1.2rem' }}>
+              Are you sure you want to block this user?
+            </DialogContentText>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
@@ -69,11 +67,13 @@ function ImageField({ value }) {
 }
 
 const columns = (handleBan) => [
-  { field: 'id', headerName: 'ID', width: 90, },
+  { field: 'id', headerName: 'ID', width: 90 },
   { field: 'avatar', headerName: 'Avatar', renderCell: ImageField, width: 110 },
   { field: 'fullName', headerName: 'Full Name', width: 200 },
   { field: 'email', headerName: 'Email', width: 250 },
+  { field: 'username', headerName: 'Username', width: 150 },
   { field: 'role', headerName: 'Role', width: 120 },
+  { field: 'status', headerName: 'Status', width: 150 },
   {
     field: 'actions',
     headerName: 'Actions',
@@ -87,12 +87,10 @@ const columns = (handleBan) => [
 
 function DataGridDemo({ searchTerm, handleBan, refreshTrigger }) {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchUsers = async () => {
-      setLoading(true);
       setError('');
       try {
         let res;
@@ -105,9 +103,7 @@ function DataGridDemo({ searchTerm, handleBan, refreshTrigger }) {
       } catch (error) {
         console.error("Failed to fetch users:", error);
         setError('Failed to fetch users');
-      } finally {
-        setLoading(false);
-      }
+      } 
     };
 
     fetchUsers();
@@ -124,7 +120,6 @@ function DataGridDemo({ searchTerm, handleBan, refreshTrigger }) {
       status: user.status,
     })) : [];
 
-  if (loading) return <CircularProgress />;
   if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
@@ -196,7 +191,7 @@ function UserList() {
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         >
-          <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }} variant="filled">
             {snackbarMessage}
           </Alert>
         </Snackbar>

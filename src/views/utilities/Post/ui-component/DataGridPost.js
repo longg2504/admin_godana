@@ -4,7 +4,6 @@ import {
     Avatar,
     IconButton,
     Dialog,
-    DialogTitle,
     DialogContent,
     DialogContentText,
     DialogActions,
@@ -33,14 +32,14 @@ function ActionButtons({ id, onDelete }) {
             <Dialog
                 open={open}
                 onClose={handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">{"Confirm Delete"}</DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Are you sure you want to detele this post?
-                    </DialogContentText>
+                    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+                        <DeleteIcon color="error" style={{ fontSize: 100 }} />
+                        <DialogContentText style={{ marginTop: 16, textAlign: 'center', fontSize: '1.2rem' }}>
+                            Are you sure you want to detele this post?
+                        </DialogContentText>
+                    </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>Cancel</Button>
@@ -67,6 +66,7 @@ const columns = (handleDelete) => [
     { field: 'username', headerName: 'Username', width: 150, sortable: false },
     { field: 'like', headerName: 'Likes', width: 70, sortable: false },
     { field: 'comment', headerName: 'Comments', width: 100, sortable: false },
+    // { field: 'createtime', headerName: 'Create Time', width: 100, sortable: false },
     {
         field: 'actions',
         headerName: 'Actions',
@@ -91,6 +91,7 @@ const DataGridPost = ({ options, handleDelete }) => {
             image: post.postAvatar?.fileUrl || 'defaultImageUrl',
             like: post.like,
             comment: post.comment,
+            createtime: post.createtime
         })) : [];
 
     // if (loading) return <CircularProgress />;

@@ -8,9 +8,10 @@ import {
   InputLabel, MenuItem, Select, FormControl, IconButton, ImageListItemBar,
   OutlinedInput, Snackbar, Alert, Box, FormHelperText, Dialog, DialogTitle, DialogContent,
   Backdrop,
-  CircularProgress
+  CircularProgress, DialogActions, DialogContentText
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import ErrorIcon from '@mui/icons-material/Error';
 // import VisibilityIcon from '@mui/icons-material/Visibility';
 
 // project imports
@@ -83,12 +84,12 @@ function SingleSelect({ label, options, onChange, name, error, onSave, open, res
 function LocationRegionSelect({ label, options, onSelectionChange, name, disabled = false, error, reset }) {
 
   const [selectedOption, setSelectedOption] = useState('');
-  
+
   useEffect(() => {
     if (reset) {
       setSelectedOption(''); // Reset the selected option
     }
-}, [reset]);
+  }, [reset]);
 
   const handleChange = (event) => {
     setSelectedOption(event.target.value);
@@ -131,7 +132,6 @@ const UploadImage = ({ onChange, reset }) => {
   useEffect(() => {
     if (reset) {
       setImagePreviews([]); // Reset the previews
-
     }
   }, [reset]);
 
@@ -155,7 +155,8 @@ const UploadImage = ({ onChange, reset }) => {
     setImagePreviews(filteredImages);
   };
 
-  const handleOpenImage = (url) => {
+  const handleOpenImage = (url, event) => {
+    event.stopPropagation(); // This will prevent the event from bubbling up to the form submit
     setSelectedImage(url);
     setOpen(true);
   };
@@ -174,10 +175,21 @@ const UploadImage = ({ onChange, reset }) => {
       <ImageList cols={5} gap={8} sx={{ width: 'auto', height: 135 }}>
         {imagePreviews.map((item, index) => (
           <ImageListItem key={index}>
-            <Button
-              onClick={() => handleOpenImage(item.url)}
-              style={{ padding: 0, width: '100%', height: '100%' }}
-              component="span"
+            <button
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                width: '100%',
+                height: '100%',
+                cursor: 'pointer',
+              }}
+              onClick={(event) => handleOpenImage(item.url, event)} // Pass the event to the handler
+              onKeyPress={(event) => {
+                if (event.key === 'Enter') {
+                  handleOpenImage(item.url, event); // Also stop propagation here if needed
+                }
+              }}
             >
               <img
                 src={item.url}
@@ -185,13 +197,15 @@ const UploadImage = ({ onChange, reset }) => {
                 loading="lazy"
                 style={{ width: '100%', height: '100%' }}
               />
-            </Button>
+            </button>
             <ImageListItemBar
+              position="top"
               actionIcon={
-                <IconButton onClick={() => handleDeleteImage(index)}>
-                  <CloseIcon color="error" />
+                <IconButton onClick={() => handleDeleteImage(index)} sx={{ color: 'rgba(255, 255, 255, 0.54)' }}>
+                  <CloseIcon />
                 </IconButton>
               }
+              actionPosition="right"
             />
           </ImageListItem>
         ))}
@@ -211,28 +225,60 @@ const UploadImage = ({ onChange, reset }) => {
   );
 };
 
+const ConfirmationDialog = ({ open, onClose, onConfirm }) => (
+  <Dialog open={open} onClose={onClose}>
+    <DialogContent>
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+        <ErrorIcon color="error" style={{ fontSize: 60 }} />
+        <DialogContentText style={{ marginTop: 16, textAlign: 'center', fontSize: '1.2rem'}}>
+          Some information is incorrect. Are you sure you want to create it anyway?
+        </DialogContentText>
+      </Box>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={onClose}>Cancel</Button>
+      <Button onClick={onConfirm} autoFocus>
+        Confirm
+      </Button>
+    </DialogActions>
+  </Dialog>
+);
 
 // ==============================|| CREATE PLACE ||============================== //
 
 const PlaceCreate = () => {
   const storedUserId = localStorage.getItem('id');
   const [isLoading, setIsLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [formErrors, setFormErrors] = useState({});
+  const [districts, setDistricts] = useState([]);
+  const [wards, setWards] = useState([]);
+
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   const [resetSingleSelect, setResetSingleSelect] = useState(false);
   const [resetLocationSelect, setResetLocationSelect] = useState(false);
   const [resetUploadImage, setResetUploadImage] = useState(false);
   const [resetTimeSetting, setResetTimeSetting] = useState(false);
+
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+
+
   // ==============================|| FORM ERRORS ||============================== //
-
-  const [formErrors, setFormErrors] = useState({});
-
   const validateField = (name, value) => {
+    const specialCharRegex = /[^a-zA-Z0-9\s]/;
+
     switch (name) {
       case 'placeTitle':
         if (!value.trim()) return "Place Title is required";
+        if (specialCharRegex.test(value)) return "Place Title contains special characters";
         break;
       case 'content':
         if (!value.trim()) return "Content is required";
+        if (specialCharRegex.test(value)) return "Content contains special characters";
         break;
       case 'latitude':
         if (!value.trim()) return "Latitude is required";
@@ -243,6 +289,7 @@ const PlaceCreate = () => {
         else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid longitude format"; break;
       case 'address':
         if (!value.trim()) return "Address is required";
+        if (specialCharRegex.test(value)) return "Address contains special characters";
         break;
       case 'email':
         if (!value.trim()) return "Email is required";
@@ -273,8 +320,8 @@ const PlaceCreate = () => {
   };
 
 
+
   // ==============================|| CATEGORY API ||============================== //
-  const [categories, setCategories] = useState([]);
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -289,12 +336,7 @@ const PlaceCreate = () => {
   }, []);
 
   // ==============================|| LOCATION PLACE ||============================== //
-  const [districts, setDistricts] = useState([]);
-  const [wards, setWards] = useState([]);
 
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
 
 
@@ -398,9 +440,21 @@ const PlaceCreate = () => {
     setResetUploadImage(false);
   };
 
-  //--------------------------------------SUMMIT---------------------------------------------------
+  //--------------------------------------SUMMIT---------------------------------------------------//
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check if there are any errors
+    const hasErrors = Object.values(formErrors).some(error => error);
+    if (hasErrors) {
+      setShowConfirmDialog(true);
+      return; // Stop submission until confirmed
+    }
+
+    submitForm();
+  };
+
+  const submitForm = async () => {
     setIsLoading(true);
 
     const submitData = new FormData();
@@ -414,56 +468,65 @@ const PlaceCreate = () => {
       }
     });
 
+    console.log(submitData);
     try {
       await createPlace(submitData);
       setSnackbarMessage('Place successfully created!');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
-      setFormData({
-        placeTitle: '',
-        content: '',
-        longitude: '',
-        latitude: '',
-        placeAvatar: [],
-        categoryId: '',
-        provinceId: '48',
-        provinceName: 'Thành Phố Đà Nẵng',
-        districtId: '',
-        districtName: '',
-        wardId: '',
-        wardName: '',
-        address: '',
-        email: '',
-        phone: '',
-        website: '',
-        openTime: '',
-        closeTime: '',
-        userId: storedUserId,
-      });
-
-      setResetSingleSelect(true);
-      setResetLocationSelect(true);
-      setResetUploadImage(true);
-      setResetTimeSetting(true);
-
-      setTimeout(() => {
-        setResetSingleSelect(false);
-        setResetLocationSelect(false);
-        setResetUploadImage(false);
-        setResetTimeSetting(false);
-      }, 0);
-
+      resetForm();
     } catch (error) {
-      if (error.response && error.response.status === 400) {
-        setSnackbarMessage('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại các trường.');
-      } else {
-        setSnackbarMessage('Đã xảy ra lỗi. Vui lòng thử lại sau.');
-      }
-      setSnackbarSeverity('error');
+      processError(error);
     } finally {
       setIsLoading(false);
       setOpenSnackbar(true);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      placeTitle: '',
+      content: '',
+      longitude: '',
+      latitude: '',
+      placeAvatar: [],
+      categoryId: '',
+      provinceId: '48',
+      provinceName: 'Thành Phố Đà Nẵng',
+      districtId: '',
+      districtName: '',
+      wardId: '',
+      wardName: '',
+      address: '',
+      email: '',
+      phone: '',
+      website: '',
+      openTime: '',
+      closeTime: '',
+      userId: storedUserId,
+    });
+
+    setResetSingleSelect(true);
+    setResetLocationSelect(true);
+    setResetUploadImage(true);
+    setResetTimeSetting(true);
+
+    setTimeout(() => {
+      setResetSingleSelect(false);
+      setResetLocationSelect(false);
+      setResetUploadImage(false);
+      setResetTimeSetting(false);
+    }, 0);
+  };
+
+  const processError = (error) => {
+    // Handle errors based on your application's needs
+    if (error.response && error.response.status === 400) {
+      setSnackbarMessage('Data is invalid. Please check the fields.');
+    } else {
+      setSnackbarMessage('An error occurred. Please try again later.');
+    }
+    setSnackbarSeverity('error');
   };
 
   const handleCloseSnackbar = (event, reason) => {
@@ -489,7 +552,6 @@ const PlaceCreate = () => {
       ...prevFormData,
       [field]: value,
     }));
-    // Optional: validate the new time values here
   };
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -510,6 +572,10 @@ const PlaceCreate = () => {
       setOpenSnackbar(true);
     }
   };
+
+  //===================================================================LOCATION MAP DEATIL=====================================================================//
+
+
   return (
     <MainCard title="Create New Place">
       <form autoComplete="off" noValidate onSubmit={handleSubmit}>
@@ -614,7 +680,7 @@ const PlaceCreate = () => {
 
         <Divider textAlign="left">Location Region</Divider>
         <Grid container spacing={1}>
-          <Grid item xs={6}>
+          <Grid item xs={5}>
             <TextField
               label="Longitude"
               fullWidth
@@ -628,7 +694,7 @@ const PlaceCreate = () => {
               helperText={formErrors.longitude}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={5}>
             <TextField
               label="Latitude"
               fullWidth
@@ -701,7 +767,7 @@ const PlaceCreate = () => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Điều chỉnh vị trí hiển thị ở đây
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }} variant="filled">
           {snackbarMessage}
         </Alert>
       </Snackbar>
@@ -711,6 +777,15 @@ const PlaceCreate = () => {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
+      <ConfirmationDialog
+        open={showConfirmDialog}
+        onClose={() => setShowConfirmDialog(false)}
+        onConfirm={() => {
+          setShowConfirmDialog(false);
+          submitForm(); // Proceed with submission even if there are errors
+        }}
+      />
+
     </MainCard>
   );
 };

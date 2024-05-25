@@ -5,8 +5,9 @@ import {
   InputLabel,
   MenuItem,
   OutlinedInput,
-
+  Alert,
   Select,
+  Snackbar,
 } from '@mui/material';
 
 // project imports
@@ -14,7 +15,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 import SubCard from 'ui-component/cards/SubCard';
 import SearchSection from 'layout/MainLayout/Header/SearchSection';
-import { getAllPlace, getPlaceListByCategoryAndSearch, fetchPlaceById } from 'constant/constURL/URLPlace';
+import { getAllPlace, getPlaceListByCategoryAndSearch, fetchPlaceById, deletePlace } from 'constant/constURL/URLPlace';
 import { fetchCategory, createCategory } from 'constant/constURL/URLCategory';
 import FormPlaceDialog from 'views/utilities/Place/page/FormPlaceDialog';
 import DataGridPlace from '../ui-component/DataGridPlace';
@@ -29,20 +30,17 @@ function SingleSelect({ label, options, onChange, name, onSave, open }) {
     const value = event.target.value;
     setSelectedOption(value);
     if (value === 'add_new') {
-      // Open the dialog
       setIsDialogOpen(true);
-    } else if (value === 'none') { 
-      setSelectedOption(''); // Reset the local state
+    } else if (value === 'none') {
+      setSelectedOption('');
       onChange(name, '');
-    }else {
-      // Notify parent component about the change
+    } else {
       onChange(name, value);
     }
   };
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
-    // Optionally reset the selected option or handle other cleanup
   };
 
   return (
@@ -79,6 +77,10 @@ const PlaceManager = () => {
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  // const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('info'); // Could be 'error', 'info', 'success', 'warning'
 
   // ==============================|| Place API ||============================== //
   const [places, setPlaces] = useState([]);
@@ -113,11 +115,11 @@ const PlaceManager = () => {
       console.error("Failed to fetch places:", error);
     }
   };
-  
+
   useEffect(() => {
     refreshPlaces();
   }, []);
-  
+
 
 
   // ==============================|| CATEGORY API ||============================== //
@@ -152,20 +154,32 @@ const PlaceManager = () => {
       setOpenSnackbar(true);
     }
   };
-  // const handleCategoryChange = (event) => {
-  //   setSelectedCategory(event.target.value);
-  // };
 
-  // ==============================|| CATEGORY API ||============================== //
+  // Delete post handler
+  const handleDelete = async (placeId) => {
+    try {
+      await deletePlace(placeId);
+      setSnackbarMessage('Place successfully deleted!');
+      setSnackbarSeverity('success');
+    } catch (error) {
+      console.error('Failed to delete Place:', error);
+      setSnackbarMessage('Failed to delete post. Please try again.');
+      setSnackbarSeverity('error');
+    }
+    finally {
+      refreshPlaces();
+    }
+    setSnackbarOpen(true); // Show the Snackbar after attempting to delete
+  };
 
-
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+  };
   // ===============================|| FORM DATA TO SEND INTO FORMPLACEDIALOG ||=============================== //
 
   const handleRowClick = async (params) => {
     try {
       const response = await fetchPlaceById(params.row.id);
-      console.log(params.row.id);
-
       setEditData({
         id: response.data.id,
         placeTitle: response.data.placeTitle,
@@ -188,7 +202,6 @@ const PlaceManager = () => {
       });
       setIsFormDialogOpen(true);
     } catch (error) {
-      console.log(params.row.id);
       console.error('Failed to fetch place details:', error);
     }
   };
@@ -208,7 +221,7 @@ const PlaceManager = () => {
     setSelectedCategoryId(value);
   };
 
-  
+
 
   return (
     <MainCard title="PLACE MANAGEMENT">
@@ -233,12 +246,16 @@ const PlaceManager = () => {
         </Grid>
         <Grid item xs={12}>
           <SubCard>
-            <DataGridPlace onRowClick={handleRowClick} options={places} />
-            <FormPlaceDialog editData={editData} open={isFormDialogOpen} onClose={handleFormDialogClose} refreshPlaces={refreshPlaces}/>
+            <DataGridPlace onRowClick={handleRowClick} options={places} handleDelete={handleDelete} />
+            <FormPlaceDialog editData={editData} open={isFormDialogOpen} onClose={handleFormDialogClose} refreshPlaces={refreshPlaces} />
           </SubCard>
         </Grid>
       </Grid>
-
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }} variant="filled">
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </MainCard>
   );
 };

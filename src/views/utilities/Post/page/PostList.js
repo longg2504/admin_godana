@@ -79,26 +79,40 @@ const PostList = () => {
   // ==============================|| API ||============================== //
   useEffect(() => {
     const fetchPosts = async () => {
-      // setLoading(true);
-      // setError('');
       try {
         let res;
         if (selectedCategoryId) {
           res = await getAllPostsByCategory(selectedCategoryId);
-          // setRefreshTrigger(!refreshTrigger);
         } else {
           res = await getAllPost();
         }
         setPosts(res.data.content);
       } catch (error) {
         console.error("Failed to fetch posts:", error);
-        // setError('Failed to fetch posts');
       } finally {
-        // setLoading(false);
+        setRefreshTrigger(!refreshTrigger);
       }
     };
     fetchPosts();
   }, [selectedCategoryId]);
+
+  const refreshPosts = async () => {
+    try {
+      let res;
+      if (selectedCategoryId) {
+        res = await getAllPostsByCategory(selectedCategoryId);
+      } else {
+        res = await getAllPost();
+      }
+      setPosts(res.data.content);
+    } catch (error) {
+      console.error("Failed to fetch posts:", error);
+    } 
+  };
+
+  useEffect(() => {
+    refreshPosts();
+  }, []);
 
   // Delete post handler
   const handleDelete = async (postId) => {
@@ -106,7 +120,7 @@ const PostList = () => {
       await deletePost(postId);
       setSnackbarMessage('Post successfully deleted!');
       setSnackbarSeverity('success');
-      setRefreshTrigger(!refreshTrigger); // Togg le to trigger re-fetch
+      refreshPosts();
     } catch (error) {
       console.error('Failed to delete post:', error);
       setSnackbarMessage('Failed to delete post. Please try again.');
@@ -114,8 +128,10 @@ const PostList = () => {
     }
     setSnackbarOpen(true); // Show the Snackbar after attempting to delete
   };
+  
   // ==============================|| CATEGORY API ||============================== //
 
+  
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -180,8 +196,8 @@ const PostList = () => {
           </SubCard>
         </Grid>
       </Grid>
-      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }} variant="filled">
           {snackbarMessage}
         </Alert>
       </Snackbar>

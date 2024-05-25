@@ -1,12 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Box,
     Avatar,
     IconButton,
     Typography,
+    Dialog,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Button,
 } from '@mui/material';
 import { DataGrid, GridOverlay } from '@mui/x-data-grid';
 import DeleteIcon from '@mui/icons-material/Delete';
+
 
 function NoRowsOverlay() {
     return (
@@ -21,13 +27,47 @@ function NoRowsOverlay() {
 }
 
 function ActionButtons({ id, onDelete }) {
+    const [open, setOpen] = useState(false);
+
+    const handleOpen = (e) => {
+        e.stopPropagation(); // Stop the event from propagating further
+        setOpen(true);
+    };
+
+    const handleClose = (e) => {
+        if (e) e.stopPropagation(); // Stop the event from propagating only if `e` is available
+        setOpen(false);
+    };
+    const handleConfirmDelete = (e) => {
+        e.stopPropagation(); // Stop the event from propagating further
+        onDelete(id);
+        handleClose();
+    };
+
+
     return (
-        <strong>
-            
-            <IconButton onClick={() => onDelete(id)} style={{ color: 'red' }}>
+        <>
+            <IconButton onClick={handleOpen} style={{ color: 'red' }}>
                 <DeleteIcon />
             </IconButton>
-        </strong>
+            <Dialog
+                open={open}
+                onClose={handleClose}
+            >
+                <DialogContent>
+                    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+                        <DeleteIcon color="error" style={{ fontSize: 100 }} />
+                        <DialogContentText style={{ marginTop: 16, textAlign: 'center', fontSize: '1.2rem' }}>
+                            Are you sure you want to detele this place?
+                        </DialogContentText>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={(e) => handleClose(e)}>Cancel</Button>
+                    <Button onClick={(e) => handleConfirmDelete(e)} autoFocus>Delete</Button>
+                </DialogActions>
+            </Dialog>
+        </>
     );
 }
 
@@ -37,7 +77,7 @@ function ImageField({ value }) {
     )
 }
 
-const columns = [
+const columns = (handleDelete) => [
     { field: 'id', headerName: 'ID', width: 30 },
     {
         field: 'image',
@@ -58,7 +98,6 @@ const columns = [
         width: 200,
         editable: false,
     },
-
     {
         field: 'category',
         headerName: 'Category',
@@ -92,7 +131,7 @@ const columns = [
     },
     {
         field: 'website',
-        headerName: 'Webite',
+        headerName: 'Website',
         sortable: false,
         width: 150,
     },
@@ -108,7 +147,6 @@ const columns = [
         sortable: false,
         width: 150,
     },
-
     {
         field: 'actions',
         headerName: 'Actions',
@@ -125,12 +163,7 @@ const columns = [
     }
 ];
 
-const handleDelete = (id) => {
-    console.log("Deleting:", id);
-    // Hiển thị hộp thoại xác nhận xóa hoặc thực hiện hành động khác
-};
-
-const DataGridPlace = ({ onRowClick, options }) => {
+const DataGridPlace = ({ onRowClick, options, handleDelete }) => {
 
     const getAddress = (locationRegion) => {
         const parts = [locationRegion?.address, locationRegion?.districtName, locationRegion?.wardName];
@@ -152,7 +185,7 @@ const DataGridPlace = ({ onRowClick, options }) => {
             website: place.contact.website,
             opentime: place.contact.openTime,
             closetime: place.contact.closeTime,
-            rating: place.rating,
+            rating: place.rating || 0,
             numberrating: place.numberrating || 0,
         }))
         : [];
@@ -161,19 +194,20 @@ const DataGridPlace = ({ onRowClick, options }) => {
         <Box sx={{ height: 500, width: '100%' }}>
             <DataGrid
                 rows={rows ? rows : "Không có dữ liệu"}
-                columns={columns}
+                columns={columns(handleDelete)}
                 initialState={{
                     pagination: {
                         paginationModel: {
-                            pageSize: 10,
+                            pageSize: 15,
                         },
                     },
                 }}
-                pageSizeOptions={[10]}
+                pageSizeOptions={[15]}
                 checkboxSelection
                 disableRowSelectionOnClick
                 onRowClick={onRowClick}
                 noRowsOverlayComponent={NoRowsOverlay}
+                pagination
             />
         </Box>
     );
