@@ -1,6 +1,6 @@
-import { useState} from 'react';
+import { useState } from 'react';
 import { Formik } from 'formik';
-import * as yup from 'yup'; // Re-enabled yup for validation
+import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 
 // Material-UI components
@@ -66,35 +66,35 @@ const FirebaseLogin = (props) => {
           localStorage.setItem('roles', response.data.roles[0].authority);
           localStorage.setItem('avatar', response.data.userAvatar?.fileUrl ? response.data.userAvatar?.fileUrl : "");
 
-          // Check if the roles array includes an object with 'authority' equal to 'ADMIN'
           const isAdmin = response.data.roles.some(role => role.authority === ADMIN);
-      
+          
+          console.log('isAdmin:', isAdmin);  // Kiểm tra isAdmin
+          console.log('response:', response);  // Kiểm tra response
+
           if (isAdmin) {
             navigate("/dashboard/report");
-            swal.fire({
+            swal({
               title: "Success!",
               text: "Login successful!",
               icon: "success",
               timer: 2000
             });
           } else {
-            // If the user is authenticated but not an admin, throw a specific error
             throw new Error('Access Denied: You do not have administrator privileges.');
           }
         } catch (error) {
           console.error("Login error:", error);
       
-          // Error handling based on HTTP status codes or specific error messages
           let message = 'Access Denied: You do not have administrator privileges.';
           if (error.response) {
             switch (error.response.status) {
-              case 401: // Unauthorized
+              case 401: 
                 message = 'Invalid credentials. Please check your username and password.';
                 break;
-              case 403: // Forbidden
+              case 403: 
                 message = 'Access Denied: You do not have administrator privileges.';
                 break;
-              case 404: // Not Found
+              case 404: 
                 message = 'Account does not exist.';
                 break;
               default:
@@ -105,7 +105,7 @@ const FirebaseLogin = (props) => {
           setStatus({ success: false });
           setErrors({ submit: message });
           setSubmitting(false);
-          swal.fire("Error!", message, "error");
+          swal("Error!", message, "error");
         }
       }}
     >

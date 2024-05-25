@@ -297,7 +297,7 @@ const PlaceCreate = () => {
         break;
       case 'phone':
         if (!value.trim()) return "Phone is required";
-        else if (!/^\d{1,11}$/.test(value)) return "Phone must be up to 10 digits";
+        else if (!/^\d{1,11}$/.test(value)) return "Phone must be up to 11 digits";
         break;
       case 'website':
         if (!value.trim()) return "Website is required";
