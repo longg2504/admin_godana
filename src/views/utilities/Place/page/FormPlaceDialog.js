@@ -142,50 +142,58 @@ const FormPlaceDialog = ({ open, editData, onClose,refreshPlaces }) => {
     // ==============================|| VALIDATION FIELD ||============================== //
 
     const validateField = (name, value) => {
+        // Cập nhật regex để cho phép các ký tự tiếng Việt
+        const specialCharRegex = /[^a-zA-Z0-9\s\u00C0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]/;
+    
         switch (name) {
-            case 'placeTitle':
-                if (!value.trim()) return "Place Title is required";
-                break;
-            case 'content':
-                if (!value.trim()) return "Content is required";
-                break;
-            case 'longitude':
-                if (!value.trim()) return "Longitude is required";
-                else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid longitude format";
-                break;
-            case 'latitude':
-                if (!value.trim()) return "Latitude is required";
-                else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid latitude format"; break;
-            case 'address':
-                if (!value.trim()) return "Address is required";
-                break;
-            case 'email':
-                if (!value.trim()) return "Email is required";
-                else if (!/\S+@\S+\.\S+/.test(value)) return "Email is not valid";
-                break;
-            case 'phone':
-                if (!value.trim()) return "Phone is required";
-                else if (!/^\d{1,10}$/.test(value)) return "Phone must be up to 10 digits";
-                break;
-            case 'website':
-                if (!value.trim()) return "Website is required";
-                // else if (!/^(https?:\/\/)?([\da-z.-]+)\.([a-z]{2,6})([\w .-]*)*\/?$/.test(value)) return "Invalid website format";
-                break;
-            case 'openTime':
-            case 'closeTime':
-                if (!value.trim()) return `${name} is required`;
-                else if (!/^([1-9]|1[012]):[0-5][0-9]\s?(AM|PM)$/i.test(value)) return "Invalid time format, expected h:mm AM/PM";
-                break;
-            case 'categoryId':
-            case 'districtId':
-            case 'wardId':
-                // if (!value) return `${name.replace('Id', '')} is required`;
-                break;
-            default:
-                return "";
+          case 'placeTitle':
+            if (!value.trim()) return "Place Title is required";
+            if (specialCharRegex.test(value)) return "Place Title contains special characters";
+            break;
+          case 'content':
+            if (!value.trim()) return "Content is required";
+            if (specialCharRegex.test(value)) return "Content contains special characters";
+            break;
+          case 'latitude':
+            if (!value.trim()) return "Latitude is required";
+            else if (!/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/.test(value)) return "Invalid latitude format";
+            break;
+          case 'longitude':
+            if (!value.trim()) return "Longitude is required";
+            else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid longitude format";
+            break;
+          case 'address':
+            if (!value.trim()) return "Address is required";
+            if (specialCharRegex.test(value)) return "Address contains special characters";
+            break;
+          case 'email':
+            if (!value.trim()) return "Email is required";
+            else if (!/\S+@\S+\.\S+/.test(value)) return "Email is not valid";
+            break;
+          case 'phone':
+            if (!value.trim()) return "Phone is required";
+            else if (!/^\d{1,11}$/.test(value)) return "Phone must be up to 11 digits";
+            break;
+          case 'website':
+            if (!value.trim()) return "Website is required";
+            // else if (!/^(https?:\/\/)?([\da-z.-]+)\.([a-z]{2,6})([\w .-]*)*\/?$/.test(value)) return "Invalid website format";
+            break;
+          case 'openTime':
+          case 'closeTime':
+            if (!value.trim()) return `${name} is required`;
+            else if (!/^([1-9]|1[012]):[0-5][0-9]\s?(AM|PM)$/i.test(value)) return "Invalid time format, expected h:mm AM/PM";
+            break;
+          case 'categoryId':
+          case 'districtId':
+          case 'wardId':
+            if (!value) return `${name.replace('Id', '')} is required`;
+            break;
+          default:
+            return "";
         }
         return "";
     };
+    
     // ==============================|| CATEGORY API ||============================== //
 
     useEffect(() => {

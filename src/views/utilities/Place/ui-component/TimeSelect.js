@@ -60,13 +60,14 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '',
     const handleTimeSettingChange = (event) => {
         const setting = event.target.value;
         setTimeSetting(setting);
-
+    
         if (setting === 'all_day') {
-            handleTimeChange('openTime', '00:00');
-            handleTimeChange('closeTime', '23:59');
+            setOpenHour('00');
+            setOpenMinute('00');
             setCloseHour('23');
             setCloseMinute('59');
-            console.log();
+            onTimeChange('openTime', '00:00');
+            onTimeChange('closeTime', '23:59');
         } else {
             setOpenHour('');
             setOpenMinute('');
@@ -76,6 +77,7 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '',
             onTimeChange('closeTime', '');
         }
     };
+    
 
     return (
         <FormControl fullWidth style={{ marginTop: '16px' }}>

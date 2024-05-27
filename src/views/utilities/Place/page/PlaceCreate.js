@@ -269,7 +269,8 @@ const PlaceCreate = () => {
 
   // ==============================|| FORM ERRORS ||============================== //
   const validateField = (name, value) => {
-    const specialCharRegex = /[^a-zA-Z0-9\s]/;
+    // Cập nhật regex để cho phép các ký tự tiếng Việt
+    const specialCharRegex = /[^a-zA-Z0-9\s\u00C0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]/;
 
     switch (name) {
       case 'placeTitle':
@@ -286,7 +287,8 @@ const PlaceCreate = () => {
         break;
       case 'longitude':
         if (!value.trim()) return "Longitude is required";
-        else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid longitude format"; break;
+        else if (!/^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/.test(value)) return "Invalid longitude format";
+        break;
       case 'address':
         if (!value.trim()) return "Address is required";
         if (specialCharRegex.test(value)) return "Address contains special characters";
@@ -317,8 +319,7 @@ const PlaceCreate = () => {
         return "";
     }
     return "";
-  };
-
+};
 
 
   // ==============================|| CATEGORY API ||============================== //

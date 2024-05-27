@@ -201,7 +201,7 @@ export default TotalGrowthBarChart;
 const getCategories = (status, reportData, series) => {
   if (status === 'day') return ['Today'];
   if (status === 'month') return ['This Month'];
-  if (status === 'year') return reportData[`${series}YearReport`]?.map((data) => `Month ${data.month}`) || [];
+  if (status === 'year') return reportData[`year${capitalize(series)}sReport`]?.map((data) => `Month ${data.month}`) || [];
   if (status === 'sixMonths') return reportData[`${series}SixMonthAgoReport`]?.map((data) => `Month ${data.month}`) || [];
   return [];
 };
