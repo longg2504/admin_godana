@@ -83,8 +83,6 @@ const FirebaseLogin = (props) => {
             throw new Error('Access Denied: You do not have administrator privileges.');
           }
         } catch (error) {
-          console.error("Login error:", error);
-      
           let message = 'Access Denied: You do not have administrator privileges.';
           if (error.response) {
             switch (error.response.status) {
@@ -162,13 +160,6 @@ const FirebaseLogin = (props) => {
               label="Remember me"
             />
           </Stack>
-
-          {errors.submit && (
-            <Box sx={{ mt: 3 }}>
-              <FormHelperText error>{errors.submit}</FormHelperText>
-            </Box>
-          )}
-
           <Box sx={{ mt: 2 }}>
             <AnimateButton>
               <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="secondary">
