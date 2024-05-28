@@ -88,7 +88,7 @@ const DataGridPost = ({ options, handleDelete }) => {
             content: post.content,
             category: post.category.title,
             username: post.user.username,
-            image: post.postAvatar?.fileUrl || 'defaultImageUrl',
+            image: post.postAvatar?.[0]?.fileUrl || 'defaultImageUrl',
             like: post.like,
             comment: post.comment,
             createtime: post.createtime
