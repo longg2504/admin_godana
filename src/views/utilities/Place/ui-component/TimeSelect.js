@@ -110,7 +110,7 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '',
                         <FormControl fullWidth>
                             <InputLabel>Giờ đóng cửa</InputLabel>
                             <Select value={closeHour} onChange={(e) => handleTimeChange('closeTime', `${e.target.value}:${closeMinute}`)}>
-                                {createTimeOptions(0, 47, 1)}
+                                {createTimeOptions(0, 23, 1)}
                             </Select>
                         </FormControl>
                     </Grid>
