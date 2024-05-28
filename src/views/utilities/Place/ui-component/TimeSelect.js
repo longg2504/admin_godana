@@ -17,9 +17,10 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '',
     const [openMinute, setOpenMinute] = useState('');
     const [closeHour, setCloseHour] = useState('');
     const [closeMinute, setCloseMinute] = useState('');
+
     useEffect(() => {
         if (reset) {
-            setTimeSetting(''); // Reset the selected option
+            setTimeSetting('');
         }
     }, [reset]);
 
@@ -38,23 +39,19 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '',
     }, [initialOpenTime, initialCloseTime]);
 
     const handleTimeChange = (field, value) => {
+        const [hour, minute] = value.split(':');
         if (field === 'openTime') {
-            const [hour, minute] = value.split(':');
             setOpenHour(hour);
             setOpenMinute(minute);
             if (parseInt(hour) > parseInt(closeHour) || (hour === closeHour && parseInt(minute) > parseInt(closeMinute))) {
                 setCloseHour(hour);
                 setCloseMinute((parseInt(minute) + 5).toString().padStart(2, '0'));
             }
-            onTimeChange('openTime', `${hour}:${minute}`);
         } else if (field === 'closeTime') {
-            const [hour, minute] = value.split(':');
-            if (parseInt(hour) > parseInt(openHour) || (hour === openHour && parseInt(minute) > parseInt(openMinute))) {
-                setCloseHour(hour);
-                setCloseMinute(minute);
-                onTimeChange('closeTime', `${hour}:${minute}`);
-            }
+            setCloseHour(hour);
+            setCloseMinute(minute);
         }
+        onTimeChange(field, value);
     };
 
     const handleTimeSettingChange = (event) => {
@@ -77,7 +74,6 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '',
             onTimeChange('closeTime', '');
         }
     };
-    
 
     return (
         <FormControl fullWidth style={{ marginTop: '16px' }}>
@@ -114,7 +110,7 @@ const TimeSelect = ({ onTimeChange, initialOpenTime = '', initialCloseTime = '',
                         <FormControl fullWidth>
                             <InputLabel>Giờ đóng cửa</InputLabel>
                             <Select value={closeHour} onChange={(e) => handleTimeChange('closeTime', `${e.target.value}:${closeMinute}`)}>
-                                {createTimeOptions(parseInt(openHour) + 1, 23, 1)}
+                                {createTimeOptions(0, 47, 1)}
                             </Select>
                         </FormControl>
                     </Grid>
